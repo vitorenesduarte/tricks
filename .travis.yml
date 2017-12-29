@@ -1,0 +1,14 @@
+language: erlang
+otp_release:
+  - 20.0
+before_script:
+  - wget https://s3.amazonaws.com/rebar3-nightly/rebar3
+  - chmod +x rebar3
+script:
+  - make test
+  - make xref
+  - make dialyzer
+  - make lint
+notifications:
+  email: false
+  slack: haslab:2lNTA7mqIcOfJ7fZpsMombyI

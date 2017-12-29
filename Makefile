@@ -2,7 +2,7 @@ PACKAGE     = quad
 REBAR       = rebar3
 HOME        = $(shell pwd)
 
-.PHONY: test doc
+.PHONY: test
 
 all: compile
 
