@@ -14,3 +14,4 @@ logs
 _build
 rebar3.crashdump
 *.DS_Store
+.cache
