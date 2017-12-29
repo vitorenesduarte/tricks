@@ -1,0 +1,19 @@
+{application, quad,
+ [{description, "Quad"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, { quad_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    crypto,
+    inets,
+    lager,
+    yamerl]},
+  {env,[]},
+  {modules, []},
+
+  {maintainers, ["Vitor Enes"]},
+  {licenses, ["Apache 2.0"]},
+  {links, [{"Github", "https://github.com/vitorenesduarte/quad"}]}
+ ]}.
