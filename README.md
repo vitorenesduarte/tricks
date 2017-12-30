@@ -1,6 +1,19 @@
-# Quad
+# quad
+
+A quad is a set of replicas.
+An experiment is one or more quads.
+
+### Features
+- Register occurrence of events. Each event has a counter associated.
+- Workflow (e.g. only start a given quad once event X counter is Y)
+- Implicit events (`start` and `end` of quads)
 
 ### Example
+
+In this example, event `client-a_end` and `client-b_end`
+are implicit events,
+while `server-ready` is an event registered by replicas
+in the `server` quad.
 
 ```yaml
 apiVersion: v1
@@ -30,6 +43,6 @@ experiment:
     value: 200
   workflow:
     start:
-      name: client-b_end
+      name: client-a_end
       value: 3
 ```

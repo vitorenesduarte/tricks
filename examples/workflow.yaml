@@ -25,5 +25,5 @@ experiment:
     value: 200
   workflow:
     start:
-      name: client-b_end
+      name: client-a_end
       value: 3
