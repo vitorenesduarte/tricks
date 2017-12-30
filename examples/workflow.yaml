@@ -1,29 +1,36 @@
 apiVersion: v1
 experiment:
 - tag: server
-  image: vitorenesduarte/server
-  replicas: 3
-  workflow:
-    end:
-      name: client-b_end
-      value: 6
-- tag: client-a
-  image: vitorenesduarte/client
+  image: vitorenesduarte/quad-example
   replicas: 3
   env:
+  - name: TYPE
+    value: server
+  workflow:
+    end:
+      name: client2_end
+      value: 6
+- tag: client1
+  image: vitorenesduarte/quad-example
+  replicas: 3
+  env:
+  - name: TYPE
+    value: client
   - name: OPS
     value: 100
   workflow:
     start:
       name: server-ready
       value: 3
-- tag: client-b
-  image: vitorenesduarte/client
+- tag: client2
+  image: vitorenesduarte/quad-example
   replicas: 6
   env:
+  - name: TYPE
+    value: client
   - name: OPS
     value: 200
   workflow:
     start:
-      name: client-a_end
+      name: client1_end
       value: 3
