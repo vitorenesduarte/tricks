@@ -18,27 +18,33 @@
 %%
 %% -------------------------------------------------------------------
 
--module(quad_sup).
+-module(cal).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
--include("quad.hrl").
+-include("cal.hrl").
 
--behaviour(supervisor).
+-behaviour(gen_server).
 
 %% API
 -export([start_link/0]).
 
-%% supervisor callbacks
--export([init/1]).
+%% gen_server callbacks
+-export([init/1,
+         handle_call/3,
+         handle_cast/2]).
 
--define(CHILD(I, Type, Timeout),
-        {I, {I, start_link, []}, permanent, Timeout, Type, [I]}).
--define(CHILD(I), ?CHILD(I, worker, 5000)).
+-record(state, {}).
 
+-spec start_link() -> {ok, pid()} | ignore | error().
 start_link() ->
-    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 init([]) ->
-    Children = [?CHILD(?APP)],
-    RestartStrategy = {one_for_one, 10, 10},
-    {ok, {RestartStrategy, Children}}.
+    lager:info("cal initialized!"),
+    {ok, #state{}}.
+
+handle_call(_Msg, _From, State) ->
+    {reply, ok, State}.
+
+handle_cast(_Msg, State) ->
+    {noreply, State}.

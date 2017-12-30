@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 DIR=$(dirname "$0")
-IMAGE=vitorenesduarte/quad-example
+IMAGE=vitorenesduarte/cal-example
 DOCKERFILE=${DIR}/Dockerfile
 
 # build image

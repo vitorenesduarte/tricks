@@ -1,4 +1,4 @@
-PACKAGE     = quad
+PACKAGE     = cal 
 REBAR       = rebar3
 HOME        = $(shell pwd)
 

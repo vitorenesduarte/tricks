@@ -1,4 +1,4 @@
--define(APP, quad).
+-define(APP, cal).
 
 %% error
 -type error() :: {error, term()}.

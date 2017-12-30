@@ -1,8 +1,8 @@
-{application, quad,
- [{description, "Quad"},
+{application, cal,
+ [{description, "cal"},
   {vsn, "0.1.0"},
   {registered, []},
-  {mod, { quad_app, []}},
+  {mod, { cal_app, []}},
   {applications,
    [kernel,
     stdlib,
@@ -16,5 +16,5 @@
 
   {maintainers, ["Vitor Enes"]},
   {licenses, ["Apache 2.0"]},
-  {links, [{"Github", "https://github.com/vitorenesduarte/quad"}]}
+  {links, [{"Github", "https://github.com/vitorenesduarte/cal"}]}
  ]}.

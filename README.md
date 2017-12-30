@@ -1,25 +1,25 @@
-# quad
+# cal
 
-A quad is a set of replicas.
-An experiment is one or more quads.
+A cal entry (CE) is a set of replicas.
+An experiment is one or more CE's.
 
 ### Features
 - Register occurrence of events. Each event has a counter associated.
-- Workflow (e.g. only start a given quad once event X counter is Y)
-- Implicit events (`start` and `end` of quads)
+- Workflow (e.g. only start a given CE once event X counter is Y)
+- Implicit events (`start` and `end` of CE)
 
 ### Example
 
 In this example, event `client-a_end` and `client-b_end`
 are implicit events,
 while `server-ready` is an event registered by replicas
-in the `server` quad.
+in the `server` CE.
 
 ```yaml
 apiVersion: v1
 experiment:
 - tag: server
-  image: vitorenesduarte/quad-example
+  image: vitorenesduarte/cal-example
   replicas: 3
   env:
   - name: TYPE
@@ -29,7 +29,7 @@ experiment:
       name: client2_end
       value: 6
 - tag: client1
-  image: vitorenesduarte/quad-example
+  image: vitorenesduarte/cal-example
   replicas: 3
   env:
   - name: TYPE
@@ -41,7 +41,7 @@ experiment:
       name: server-ready
       value: 3
 - tag: client2
-  image: vitorenesduarte/quad-example
+  image: vitorenesduarte/cal-example
   replicas: 6
   env:
   - name: TYPE

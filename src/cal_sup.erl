@@ -18,24 +18,27 @@
 %%
 %% -------------------------------------------------------------------
 
--module(quad_app).
+-module(cal_sup).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
--behaviour(application).
+-include("cal.hrl").
 
-%% application callbacks
--export([start/2,
-         stop/1]).
+-behaviour(supervisor).
 
-%% @doc Initialize the application.
-start(_StartType, _StartArgs) ->
-    case quad_sup:start_link() of
-        {ok, Pid} ->
-            {ok, Pid};
-        Other ->
-            {error, Other}
-    end.
+%% API
+-export([start_link/0]).
 
-%% @doc Stop the application.
-stop(_State) ->
-    ok.
+%% supervisor callbacks
+-export([init/1]).
+
+-define(CHILD(I, Type, Timeout),
+        {I, {I, start_link, []}, permanent, Timeout, Type, [I]}).
+-define(CHILD(I), ?CHILD(I, worker, 5000)).
+
+start_link() ->
+    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+
+init([]) ->
+    Children = [?CHILD(?APP)],
+    RestartStrategy = {one_for_one, 10, 10},
+    {ok, {RestartStrategy, Children}}.

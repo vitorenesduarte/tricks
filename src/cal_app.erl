@@ -18,33 +18,24 @@
 %%
 %% -------------------------------------------------------------------
 
--module(quad).
+-module(cal_app).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
--include("quad.hrl").
+-behaviour(application).
 
--behaviour(gen_server).
+%% application callbacks
+-export([start/2,
+         stop/1]).
 
-%% API
--export([start_link/0]).
+%% @doc Initialize the application.
+start(_StartType, _StartArgs) ->
+    case cal_sup:start_link() of
+        {ok, Pid} ->
+            {ok, Pid};
+        Other ->
+            {error, Other}
+    end.
 
-%% gen_server callbacks
--export([init/1,
-         handle_call/3,
-         handle_cast/2]).
-
--record(state, {}).
-
--spec start_link() -> {ok, pid()} | ignore | error().
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
-
-init([]) ->
-    lager:info("quad initialized!"),
-    {ok, #state{}}.
-
-handle_call(_Msg, _From, State) ->
-    {reply, ok, State}.
-
-handle_cast(_Msg, State) ->
-    {noreply, State}.
+%% @doc Stop the application.
+stop(_State) ->
+    ok.
