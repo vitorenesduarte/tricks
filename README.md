@@ -10,7 +10,7 @@ An experiment is one or more CE's.
 
 ### Example
 
-In this example, event `client-a_end` and `client-b_end`
+In this example, event `client1_end` and `client2_end`
 are implicit events,
 while `server-ready` is an event registered by replicas
 in the `server` CE.
