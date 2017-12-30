@@ -1,8 +1,3 @@
-# Quad
-
-### Example
-
-```yaml
 apiVersion: v1
 experiment:
 - tag: server
@@ -32,4 +27,3 @@ experiment:
     start:
       name: client-b_end
       value: 3
-```
