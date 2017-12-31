@@ -26,14 +26,15 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0,
-         run/1]).
+-export([start_link/0]).
+
+%% TODO remove
+-export([example/0]).
 
 %% gen_server callbacks
 -export([init/1,
          handle_call/3,
-         handle_cast/2,
-         handle_info/2]).
+         handle_cast/2]).
 
 -record(state, {}).
 
@@ -42,9 +43,9 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc Run an experiment.
--spec run(experiment()) -> ok | error().
-run(Experiment) ->
-    gen_server:call(?MODULE, {run, Experiment}, infinity).
+-spec example() -> ok | error().
+example() ->
+    gen_server:call(?MODULE, {run, exp()}, infinity).
 
 init([]) ->
     lager:info("cal initialized!"),
@@ -52,21 +53,17 @@ init([]) ->
     %% init kuberl
     %application:set_env(kuberl, host, "kubernetes.default"),
 
-    %% schedule experiment
-    {ok, _TRef} = timer:send_after(1000, run),
-
     {ok, #state{}}.
 
 handle_call({run, Experiment}, _From, State) ->
-    lager:info("Run experiment ~p:", [Experiment]),
-
+    run(Experiment),
     {reply, ok, State}.
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
-handle_info(run, State) ->
-    #{<<"experiment">> := CEs} = exp(),
+run(Experiment) ->
+    #{<<"experiment">> := CEs} = Experiment,
 
     lists:foreach(
         fun(CE0) ->
@@ -92,7 +89,6 @@ handle_info(run, State) ->
                              <<"spec">> => Spec},
 
                     %% create pod
-                    lager:info("Request ~p", [Body]),
                     Ctx = undefined,
                     Namespace = "default",
                     %% TODO
@@ -113,9 +109,7 @@ handle_info(run, State) ->
             )
         end,
         CEs
-    ),
-
-    {noreply, State}.
+    ).
 
 -define(SEP, <<"-">>).
 
