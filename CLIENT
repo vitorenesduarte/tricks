@@ -1,0 +1,13 @@
+assert:
+- tag
+ * required
+- image
+ * required
+- replicas
+ * default 1
+ * > 0
+- env
+ * default []
+ * list of two pairs {"name": x, "value": y}
+ * reserved names: ID, IP
+ 

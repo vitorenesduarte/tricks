@@ -26,12 +26,14 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0]).
+-export([start_link/0,
+         run/1]).
 
 %% gen_server callbacks
 -export([init/1,
          handle_call/3,
-         handle_cast/2]).
+         handle_cast/2,
+         handle_info/2]).
 
 -record(state, {}).
 
@@ -39,12 +41,127 @@
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
+%% @doc Run an experiment.
+-spec run(experiment()) -> ok | error().
+run(Experiment) ->
+    gen_server:call(?MODULE, {run, Experiment}, infinity).
+
 init([]) ->
     lager:info("cal initialized!"),
+
+    %% init kuberl
+    %application:set_env(kuberl, host, "kubernetes.default"),
+
+    %% schedule experiment
+    {ok, _TRef} = timer:send_after(1000, run),
+
     {ok, #state{}}.
 
-handle_call(_Msg, _From, State) ->
+handle_call({run, Experiment}, _From, State) ->
+    lager:info("Run experiment ~p:", [Experiment]),
+
     {reply, ok, State}.
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
+
+handle_info(run, State) ->
+    #{<<"experiment">> := CEs} = exp(),
+
+    lists:foreach(
+        fun(CE0) ->
+            %% extract number of replicas of this CE
+            #{<<"replicas">> := Replicas} = CE0,
+
+            lists:foreach(
+                fun(Id) ->
+                    %% append id to pod info
+                    CE = CE0#{<<"id">> => id(Id)},
+
+                    %% create pod metadata
+                    Metadata = metadata(CE),
+
+                    %% create pod spec
+                    #{<<"name">> := Name} = Metadata,
+                    Spec = spec(Name, CE),
+
+                    %% create request body
+                    Body = #{<<"apiVersion">> => <<"v1">>,
+                             <<"kind">> => <<"Pod">>,
+                             <<"metadata">> => Metadata,
+                             <<"spec">> => Spec},
+
+                    %% create pod
+                    lager:info("Request ~p", [Body]),
+                    Ctx = undefined,
+                    Namespace = "default",
+                    %% TODO
+                    %% replace by kuberl_core_v1_api:create_namespaced_pod
+                    R = kuberl_utils:request(
+                        Ctx,
+                        post,
+                        ["/api/v1/namespaces/", Namespace, "/pods"],
+                        [],
+                        [{<<"Content-Type">>, <<"application/json">>}],
+                        Body,
+                        []
+                    ),
+                    lager:info("Response ~p", [R])
+
+                end,
+                lists:seq(1, Replicas)
+            )
+        end,
+        CEs
+    ),
+
+    {noreply, State}.
+
+-define(SEP, <<"-">>).
+
+-spec id(integer()) -> binary().
+id(Id) ->
+    integer_to_binary(Id).
+
+-spec metadata(maps:map()) -> maps:map().
+metadata(#{<<"tag">> := Tag, <<"id">> := Id}) ->
+    #{<<"name">> => name(Tag, Id),
+      <<"labels">> => #{<<"tag">> => Tag,
+                        <<"id">> => Id}}.
+
+-spec name(binary(), binary()) -> binary().
+name(Tag, Id) ->
+    <<Tag/binary, ?SEP/binary, Id/binary>>.
+
+-spec spec(binary(), maps:map()) -> maps:map().
+spec(Name, #{<<"image">> := Image}=CE) ->
+    #{<<"restartPolicy">> => <<"Never">>,
+      <<"containers">> => [#{<<"name">> => Name,
+                             <<"image">> => Image,
+                             <<"imagePullPolicy">> => <<"Always">>,
+                             <<"env">> => env(CE)}]}.
+
+%% @doc Append env vars:
+%%   - ID
+%%   - IP
+-spec env(maps:map()) -> maps:map().
+env(#{<<"id">> := Id, <<"env">> := Env}) ->
+    [#{<<"name">> => <<"ID">>,
+       <<"value">> => Id},
+     #{<<"name">> => <<"IP">>,
+       <<"valueFrom">> => #{<<"fieldRef">>
+                            => #{<<"fieldPath">>
+                                 => <<"status.podIP">>}}
+      } | Env].
+
+exp() ->
+    #{<<"apiVersion">> => <<"v1">>,
+      <<"experiment">> =>
+      [#{<<"tag">> => <<"hello-world">>,
+         <<"image">> => <<"vitorenesduarte/cal-example">>,
+         <<"replicas">> => 1,
+         <<"env">> =>
+         [#{<<"name">> => <<"TYPE">>,
+            <<"value">> => <<"hello-world">>},
+          #{<<"name">> => <<"COUNT">>,
+            <<"value">> => <<"10">>}]}]}.

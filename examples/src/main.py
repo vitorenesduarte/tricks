@@ -15,7 +15,7 @@ def HelloWorld():
     #  - sleep 2 seconds between messages
     ###
     count = int(os.environ["COUNT"])
-    for i in xrange(count):
+    for i in range(count):
         print(str(i) + ") Hello World!")
         time.sleep(2)
 
