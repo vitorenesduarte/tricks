@@ -91,16 +91,10 @@ run(Experiment) ->
                     %% create pod
                     Ctx = undefined,
                     Namespace = "default",
-                    %% TODO
-                    %% replace by kuberl_core_v1_api:create_namespaced_pod
-                    R = kuberl_utils:request(
+                    R = kuberl_core_v1_api:create_namespaced_pod(
                         Ctx,
-                        post,
-                        ["/api/v1/namespaces/", Namespace, "/pods"],
-                        [],
-                        [{<<"Content-Type">>, <<"application/json">>}],
-                        Body,
-                        []
+                        Namespace,
+                        Body
                     ),
                     lager:info("Response ~p", [R])
 
