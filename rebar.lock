@@ -1,6 +1,5 @@
 {"1.1.0",
-[{<<"augle">>,{pkg,<<"augle">>,<<"0.3.0">>},1},
- {<<"backoff">>,{pkg,<<"backoff">>,<<"1.1.3">>},1},
+[{<<"backoff">>,{pkg,<<"backoff">>,<<"1.1.3">>},1},
  {<<"certifi">>,{pkg,<<"certifi">>,<<"2.0.0">>},2},
  {<<"ctx">>,{pkg,<<"ctx">>,<<"0.2.0">>},1},
  {<<"goldrush">>,{pkg,<<"goldrush">>,<<"0.1.9">>},1},
@@ -9,7 +8,7 @@
  {<<"jsx">>,{pkg,<<"jsx">>,<<"2.8.3">>},1},
  {<<"kuberl">>,
   {git,"https://github.com/tsloughter/kuberl",
-       {ref,"211cb1ef234f56269c7775c29bbbdc760eacec29"}},
+       {ref,"bffbc7ec7239e259c0859f1bc2d4e540effbf496"}},
   0},
  {<<"lager">>,{pkg,<<"lager">>,<<"3.5.2">>},0},
  {<<"metrics">>,{pkg,<<"metrics">>,<<"1.0.1">>},2},
@@ -19,7 +18,6 @@
  {<<"yamerl">>,{pkg,<<"yamerl">>,<<"0.6.0">>},0}]}.
 [
 {pkg_hash,[
- {<<"augle">>, <<"25633E47BB163ECB74EB34628DB49B622FEC659137C2A3250FA5430965DF272B">>},
  {<<"backoff">>, <<"DE762C05ED6DFAE862D83DC9E58AE936792B01302B3595F5CFFE86F2D8E6C1DD">>},
  {<<"certifi">>, <<"A0C0E475107135F76B8C1D5BC7EFB33CD3815CB3CF3DEA7AEFDD174DABEAD064">>},
  {<<"ctx">>, <<"52D927742961E915E48CF504BE1A72ACC1097F8A07DFB3FA64EADFE230BFBDEF">>},

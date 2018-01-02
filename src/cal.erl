@@ -36,7 +36,7 @@
          handle_call/3,
          handle_cast/2]).
 
--record(state, {}).
+-record(state, {kuberl_cfg :: maps:map()}).
 
 -spec start_link() -> {ok, pid()} | ignore | error().
 start_link() ->
@@ -51,18 +51,19 @@ init([]) ->
     lager:info("cal initialized!"),
 
     %% init kuberl
-    %application:set_env(kuberl, host, "kubernetes.default"),
+    %Cfg = kuberl:cfg_with_host("kubernetes.default"),
+    Cfg = #{},
 
-    {ok, #state{}}.
+    {ok, #state{kuberl_cfg=Cfg}}.
 
-handle_call({run, Experiment}, _From, State) ->
-    run(Experiment),
+handle_call({run, Experiment}, _From, #state{kuberl_cfg=Cfg}=State) ->
+    run(Experiment, Cfg),
     {reply, ok, State}.
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
-run(Experiment) ->
+run(Experiment, Cfg) ->
     #{<<"experiment">> := CEs} = Experiment,
 
     lists:foreach(
@@ -89,12 +90,13 @@ run(Experiment) ->
                              <<"spec">> => Spec},
 
                     %% create pod
-                    Ctx = undefined,
-                    Namespace = "default",
+                    Ctx = ctx:background(),
+                    Namespace = <<"default">>,
                     R = kuberl_core_v1_api:create_namespaced_pod(
                         Ctx,
                         Namespace,
-                        Body
+                        Body,
+                        #{cfg => Cfg}
                     ),
                     lager:info("Response ~p", [R])
 
