@@ -51,14 +51,14 @@ pod_body(ExpId, PodId,
                             <<"podId">> => PodId,
                             <<"name">> => PodName},
 
-		%% create pod metadata
-		Metadata = metadata(EntrySpec),
+    %% create pod metadata
+    Metadata = metadata(EntrySpec),
 
-		%% create pod spec
-		Spec = spec(EntrySpec),
+    %% create pod spec
+    Spec = spec(EntrySpec),
 
-		%% create request body
-		#{<<"apiVersion">> => <<"v1">>,
+    %% create request body
+    #{<<"apiVersion">> => <<"v1">>,
       <<"kind">> => <<"Pod">>,
       <<"metadata">> => Metadata,
       <<"spec">> => Spec}.
