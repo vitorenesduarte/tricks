@@ -6,3 +6,5 @@ experiment:
   env:
   - name: TYPE
     value: hello-world
+  - name: COUNT
+    value: 10

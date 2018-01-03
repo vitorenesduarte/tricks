@@ -25,17 +25,18 @@
 
 %% API
 -export([exp_id/0,
-         pod_body/3]).
+         pod_body/3,
+         label_selector/1]).
 
 -define(SEP, <<"-">>).
 
 %% @doc Generate experiment identifier.
--spec exp_id() -> exp_id().
+-spec exp_id() -> integer().
 exp_id() ->
     erlang:system_time(millisecond).
 
 %% @doc Body for Kubernetes pod creation.
--spec pod_body(exp_id() | binary(), pod_id() | binary(), entry_spec()) ->
+-spec pod_body(integer() | binary(), integer() | binary(), maps:map()) ->
     maps:map().
 pod_body(ExpId, PodId, EntrySpec) when is_integer(ExpId) ->
     pod_body(integer_to_binary(ExpId), PodId, EntrySpec);
@@ -63,6 +64,18 @@ pod_body(ExpId, PodId, #{<<"tag">> := Tag}=EntrySpec0)
       <<"kind">> => <<"Pod">>,
       <<"metadata">> => Metadata,
       <<"spec">> => Spec}.
+
+%% @doc Compute pod label selector.
+-spec label_selector(maps:map()) -> binary().
+label_selector(#{<<"metadata">> := #{<<"labels">> := Labels}}=_PodBody) ->
+    Selectors = maps:fold(
+        fun(Label, Value, Acc) ->
+            [cal_util:binary_join(<<"%3D">>, [Label, Value]) | Acc]
+        end,
+        [],
+        Labels
+    ),
+    cal_util:binary_join(<<",">>, Selectors).
 
 %% @private Generate pod name.
 %%          Given it's entry name/tag (x), experiment id (y), and pod (z),

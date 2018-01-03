@@ -41,7 +41,7 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc Run an experiment.
--spec run(exp_spec()) -> ok | error().
+-spec run(maps:map()) -> ok | error().
 run(Exp) ->
     gen_server:call(?MODULE, {run, Exp}, infinity).
 
@@ -67,9 +67,8 @@ run(Experiment, Cfg) ->
     ExpId = cal_exp:exp_id(),
 
     lists:foreach(
-        fun(EntrySpec) ->
-            %% extract number of replicas of this entry
-            #{<<"replicas">> := Replicas} = EntrySpec,
+        fun(#{<<"replicas">> := Replicas,
+              <<"workflow">> := _Workflow}=EntrySpec) ->
 
             lists:foreach(
                 fun(PodId) ->
