@@ -26,10 +26,8 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0]).
-
-%% TODO remove
--export([example/0]).
+-export([start_link/0,
+         run/1]).
 
 %% gen_server callbacks
 -export([init/1,
@@ -43,9 +41,9 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc Run an experiment.
--spec example() -> ok | error().
-example() ->
-    gen_server:call(?MODULE, {run, exp()}, infinity).
+-spec run(exp_spec()) -> ok | error().
+run(Exp) ->
+    gen_server:call(?MODULE, {run, Exp}, infinity).
 
 init([]) ->
     lager:info("cal initialized!"),
@@ -63,6 +61,7 @@ handle_call({run, Experiment}, _From, #state{kuberl_cfg=Cfg}=State) ->
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
+%% @private Run an experiment given its config and kuberl config.
 run(Experiment, Cfg) ->
     #{<<"experiment">> := EntrySpecs} = Experiment,
     ExpId = cal_exp:exp_id(),
@@ -96,15 +95,3 @@ run(Experiment, Cfg) ->
         end,
         EntrySpecs
     ).
-
-exp() ->
-    #{<<"apiVersion">> => <<"v1">>,
-      <<"experiment">> =>
-      [#{<<"tag">> => <<"hello-world">>,
-         <<"image">> => <<"vitorenesduarte/cal-example">>,
-         <<"replicas">> => 1,
-         <<"env">> =>
-         [#{<<"name">> => <<"TYPE">>,
-            <<"value">> => <<"hello-world">>},
-          #{<<"name">> => <<"COUNT">>,
-            <<"value">> => <<"10">>}]}]}.
