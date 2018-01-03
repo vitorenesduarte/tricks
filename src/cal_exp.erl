@@ -35,14 +35,15 @@ exp_id() ->
     erlang:system_time(millisecond).
 
 %% @doc Body for Kubernetes pod creation.
--spec pod_body(exp_id() | binary(), pod_id() | binary(), entry_spec()) -> maps:map().
+-spec pod_body(exp_id() | binary(), pod_id() | binary(), entry_spec()) ->
+    maps:map().
 pod_body(ExpId, PodId, EntrySpec) when is_integer(ExpId) ->
     pod_body(integer_to_binary(ExpId), PodId, EntrySpec);
 pod_body(ExpId, PodId, EntrySpec) when is_integer(PodId) ->
     pod_body(ExpId, integer_to_binary(PodId), EntrySpec);
-pod_body(ExpId, PodId,
-         #{<<"tag">> := Tag}=EntrySpec0) when is_binary(ExpId), is_binary(PodId) ->
-    
+pod_body(ExpId, PodId, #{<<"tag">> := Tag}=EntrySpec0)
+  when is_binary(ExpId), is_binary(PodId) ->
+
     %% create pod name
     PodName = pod_name(Tag, ExpId, PodId),
 

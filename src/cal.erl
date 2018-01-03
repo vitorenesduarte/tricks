@@ -65,7 +65,7 @@ handle_cast(_Msg, State) ->
 
 run(Experiment, Cfg) ->
     #{<<"experiment">> := EntrySpecs} = Experiment,
-    ExpId = ?EXP:exp_id(),
+    ExpId = cal_exp:exp_id(),
 
     lists:foreach(
         fun(EntrySpec) ->
@@ -75,9 +75,9 @@ run(Experiment, Cfg) ->
             lists:foreach(
                 fun(PodId) ->
                     %% pod body
-                    Body = ?EXP:pod_body(ExpId,
-                                         PodId,
-                                         EntrySpec),
+                    Body = cal_exp:pod_body(ExpId,
+                                            PodId,
+                                            EntrySpec),
 
                     %% create pod
                     Ctx = ctx:background(),
