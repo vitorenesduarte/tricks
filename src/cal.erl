@@ -64,30 +64,20 @@ handle_cast(_Msg, State) ->
     {noreply, State}.
 
 run(Experiment, Cfg) ->
-    #{<<"experiment">> := CEs} = Experiment,
+    #{<<"experiment">> := EntrySpecs} = Experiment,
+    ExpId = ?EXP:exp_id(),
 
     lists:foreach(
-        fun(CE0) ->
-            %% extract number of replicas of this CE
-            #{<<"replicas">> := Replicas} = CE0,
+        fun(EntrySpec) ->
+            %% extract number of replicas of this entry
+            #{<<"replicas">> := Replicas} = EntrySpec,
 
             lists:foreach(
-                fun(Id) ->
-                    %% append id to pod info
-                    CE = CE0#{<<"id">> => id(Id)},
-
-                    %% create pod metadata
-                    Metadata = metadata(CE),
-
-                    %% create pod spec
-                    #{<<"name">> := Name} = Metadata,
-                    Spec = spec(Name, CE),
-
-                    %% create request body
-                    Body = #{<<"apiVersion">> => <<"v1">>,
-                             <<"kind">> => <<"Pod">>,
-                             <<"metadata">> => Metadata,
-                             <<"spec">> => Spec},
+                fun(PodId) ->
+                    %% pod body
+                    Body = ?EXP:pod_body(ExpId,
+                                         PodId,
+                                         EntrySpec),
 
                     %% create pod
                     Ctx = ctx:background(),
@@ -104,45 +94,8 @@ run(Experiment, Cfg) ->
                 lists:seq(1, Replicas)
             )
         end,
-        CEs
+        EntrySpecs
     ).
-
--define(SEP, <<"-">>).
-
--spec id(integer()) -> binary().
-id(Id) ->
-    integer_to_binary(Id).
-
--spec metadata(maps:map()) -> maps:map().
-metadata(#{<<"tag">> := Tag, <<"id">> := Id}) ->
-    #{<<"name">> => name(Tag, Id),
-      <<"labels">> => #{<<"tag">> => Tag,
-                        <<"id">> => Id}}.
-
--spec name(binary(), binary()) -> binary().
-name(Tag, Id) ->
-    <<Tag/binary, ?SEP/binary, Id/binary>>.
-
--spec spec(binary(), maps:map()) -> maps:map().
-spec(Name, #{<<"image">> := Image}=CE) ->
-    #{<<"restartPolicy">> => <<"Never">>,
-      <<"containers">> => [#{<<"name">> => Name,
-                             <<"image">> => Image,
-                             <<"imagePullPolicy">> => <<"Always">>,
-                             <<"env">> => env(CE)}]}.
-
-%% @doc Append env vars:
-%%   - ID
-%%   - IP
--spec env(maps:map()) -> maps:map().
-env(#{<<"id">> := Id, <<"env">> := Env}) ->
-    [#{<<"name">> => <<"ID">>,
-       <<"value">> => Id},
-     #{<<"name">> => <<"IP">>,
-       <<"valueFrom">> => #{<<"fieldRef">>
-                            => #{<<"fieldPath">>
-                                 => <<"status.podIP">>}}
-      } | Env].
 
 exp() ->
     #{<<"apiVersion">> => <<"v1">>,
