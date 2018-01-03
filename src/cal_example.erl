@@ -40,6 +40,6 @@ hello_world() ->
               [#{<<"name">> => <<"TYPE">>,
                  <<"value">> => <<"hello-world">>},
                #{<<"name">> => <<"COUNT">>,
-                 <<"value">> => <<"10">>}]}]},
+                 <<"value">> => <<"1000">>}]}]},
 
    cal:run(Exp).

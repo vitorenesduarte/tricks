@@ -67,8 +67,7 @@ run(Experiment, Cfg) ->
     ExpId = cal_exp:exp_id(),
 
     lists:foreach(
-        fun(#{<<"replicas">> := Replicas,
-              <<"workflow">> := _Workflow}=EntrySpec) ->
+        fun(#{<<"replicas">> := Replicas}=EntrySpec) ->
 
             lists:foreach(
                 fun(PodId) ->
@@ -86,7 +85,9 @@ run(Experiment, Cfg) ->
                         Body,
                         #{cfg => Cfg}
                     ),
-                    lager:info("Response ~p", [R])
+                    lager:info("Response ~p", [R]),
+
+                    cal_pod_watch:watch(Body, Cfg)
 
                 end,
                 lists:seq(1, Replicas)
