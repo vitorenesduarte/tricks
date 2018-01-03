@@ -53,3 +53,12 @@ experiment:
       name: client1_end
       value: 3
 ```
+
+# Environment variables (EV)
+
+Configuration of pods is achieved through EVs.
+Some EV names are reserved and always defined in every pod:
+- `TAG`
+- `EXP_ID`
+- `POD_ID`
+- `POD_IP`

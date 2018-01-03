@@ -9,5 +9,5 @@ assert:
 - env
  * default []
  * list of two pairs {"name": x, "value": y}
- * reserved names: ID, IP
+ * reserved names: TAG, EXP_IP, POD_ID, POD_IP
  
