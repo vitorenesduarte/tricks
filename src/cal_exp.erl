@@ -93,14 +93,23 @@ spec(#{<<"name">> := PodName,
                              <<"imagePullPolicy">> => <<"Always">>,
                              <<"env">> => env(EntrySpec)}]}.
 
-%% @private env vars:
-%%   - ID
-%%   - IP
+%% @private Append env vars:
+%%   - TAG
+%%   - EXP_ID
+%%   - POD_ID
+%%   - POD_IP
 -spec env(maps:map()) -> maps:map().
-env(#{<<"id">> := Id, <<"env">> := Env}) ->
-    [#{<<"name">> => <<"ID">>,
-       <<"value">> => Id},
-     #{<<"name">> => <<"IP">>,
+env(#{<<"tag">> := Tag,
+      <<"expId">> := ExpId,
+      <<"podId">> := PodId,
+      <<"env">> := Env}) ->
+    [#{<<"name">> => <<"TAG">>,
+       <<"value">> => Tag},
+     #{<<"name">> => <<"EXP_ID">>,
+       <<"value">> => ExpId},
+     #{<<"name">> => <<"POD_ID">>,
+       <<"value">> => PodId},
+     #{<<"name">> => <<"POD_IP">>,
        <<"valueFrom">> => #{<<"fieldRef">>
                             => #{<<"fieldPath">>
                                  => <<"status.podIP">>}}
