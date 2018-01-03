@@ -70,7 +70,7 @@ pod_body(ExpId, PodId, #{<<"tag">> := Tag}=EntrySpec0)
 label_selector(#{<<"metadata">> := #{<<"labels">> := Labels}}=_PodBody) ->
     Selectors = maps:fold(
         fun(Label, Value, Acc) ->
-            [cal_util:binary_join(<<"%3D">>, [Label, Value]) | Acc]
+            [cal_util:binary_join(<<"=">>, [Label, Value]) | Acc]
         end,
         [],
         Labels
