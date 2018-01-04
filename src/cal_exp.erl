@@ -31,7 +31,7 @@
 -define(SEP, <<"-">>).
 
 %% @doc Generate experiment identifier.
--spec exp_id() -> integer().
+-spec exp_id() -> exp_id().
 exp_id() ->
     erlang:system_time(millisecond).
 

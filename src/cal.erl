@@ -88,11 +88,5 @@ do_run(Experiment) ->
     {now | event(), never | event()}.
 get_workflow_info(EntrySpec) ->
     Workflow = maps:get(<<"workflow">>, EntrySpec, #{}),
-    {parse_info(maps:get(<<"start">>, Workflow, now)),
-     parse_info(maps:get(<<"stop">>,  Workflow, never))}.
-
-%% @private
-parse_info(I) when is_atom(I) ->
-    I;
-parse_info({Name, Value}) when is_binary(Name), is_binary(Value) ->
-    {Name, binary_to_integer(Value)}.
+    {maps:get(<<"start">>, Workflow, now),
+     maps:get(<<"stop">>,  Workflow, never)}.
