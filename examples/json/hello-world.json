@@ -1,0 +1,1 @@
+{"experiment": [{"image": "vitorenesduarte/cal-example", "tag": "hello-world", "env": [{"name": "TYPE", "value": "hello-world"}, {"name": "COUNT", "value": 10}], "replicas": 1}], "apiVersion": "v1"}
