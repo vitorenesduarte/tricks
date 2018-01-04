@@ -81,8 +81,7 @@ handle_event(Type, #{metadata := #{labels := Labels}}, State) ->
 
     {ok, State}.
 
-terminate(Reason, _State) ->
-    lager:info("Terminating : ~p~n", [Reason]),
+terminate(_Reason, _State) ->
     ok.
 
 %% @private Create event name given the event type from kuberl watch

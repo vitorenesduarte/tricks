@@ -81,6 +81,8 @@ handle_call({subscribe, ExpId, Event, Pid}, _From,
     {reply, ok, State#state{exp_to_data=ETD1}}.
 
 handle_cast({register, ExpId, EventName}, #state{exp_to_data=ETD0}=State) ->
+    lager:info("Event [~p] ~p", [ExpId, EventName]),
+
     ETD1 = dict:update(
         ExpId,
         fun(#{subs := Subs,

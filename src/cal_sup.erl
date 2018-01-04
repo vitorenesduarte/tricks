@@ -39,7 +39,9 @@ start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init([]) ->
-    Children = [?CHILD(?APP),
-                ?CHILD(cal_scheduler)],
+    Actors = [?APP,
+              cal_scheduler,
+              cal_event_manager],
+    Children = [?CHILD(A) || A <- Actors],
     RestartStrategy = {one_for_one, 10, 10},
     {ok, {RestartStrategy, Children}}.
