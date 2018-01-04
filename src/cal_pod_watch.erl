@@ -31,6 +31,12 @@
          handle_event/3,
          terminate/2]).
 
+-define(PENDING, 0).
+-define(RUNNING, 1).
+-define(STOPPED, 2).
+
+-record(state, {current :: ?PENDING | ?RUNNING | ?STOPPED}).
+
 %% @doc Watch changes on pod.
 %%      It takes as an argument
 %%      kuberl pod body.
@@ -46,53 +52,71 @@ watch(Body, Cfg) ->
                             []).
 
 init([]) ->
-    {ok, []}.
+    {ok, #state{current=?PENDING}}.
 
 handle_event(error, #{message := Message}, State) ->
     lager:info("Error : ~p~n", [Message]),
     {ok, State};
-handle_event(Type, #{metadata := #{labels := Labels}}, State) ->
+handle_event(_Type, #{metadata := #{labels := Labels},
+                      status   := #{phase := Phase}}, State0) ->
     %% extract exp id and tag pod info
     %% from its labels
     #{expId := ExpId,
       tag   := Tag} = Labels,
 
-    EventName = event_name(Type, Tag),
+    {Events, State1} = get_events(Phase, Tag, State0),
 
-    %% if a valid event,
-    %% register it in event manager
-    case EventName of
+    case Events of
         undefined ->
             ok;
         _ ->
-            cal_event_manager:register(ExpId, EventName)
+            %% register all events
+            [cal_event_manager:register(ExpId, Event) ||
+             Event <- Events]
     end,
 
-    %% if event type from kuberl
-    %% is deleted, stop watching
-    case Type of
-        deleted ->
-            %% TODO proper watch stop
-            WatchPid = self(),
-            spawn(fun() -> gen_statem:stop(WatchPid) end);
+    %% if pod is stopped,
+    %% stop watching
+    case State1 of
+        #state{current=?STOPPED} ->
+            %% TODO stop watch
+            %WatchPid = self(),
+            %spawn(fun() -> gen_statem:stop(WatchPid) end);
+            ok;
         _ ->
             ok
     end,
 
-    {ok, State}.
+    {ok, State1}.
 
 terminate(_Reason, _State) ->
     ok.
 
-%% @private Create event name given the event type from kuberl watch
-%%          and the pod tag.
-%%          If the event type is added,
-%%          the event name is tag_start.
-%%          If the event type is deleted,
-%%          the event name is tag_stop.
-event_name(added, Tag) when is_binary(Tag) ->
-    <<Tag/binary, "_start">>;
-event_name(deleted, Tag) when is_binary(Tag) ->
-    <<Tag/binary, "_stop">>;
-event_name(modified, Tag) when is_binary(Tag) ->
-    undefined.
+%% @private Create events given pod phase.
+get_events(<<"Running">>, Tag,
+           #state{current=?PENDING}=State) when is_binary(Tag) ->
+    %% if running,
+    %% and our current is pending,
+    %% return start event
+    Events = [<<Tag/binary, "_start">>],
+    {Events, State#state{current=?RUNNING}};
+
+get_events(<<"Succeeded">>, Tag, #state{current=Current}=State) when is_binary(Tag) ->
+    Events = case Current of
+        ?PENDING ->
+            %% if succeeded and our current is pending,
+            %% return start and stop events
+            [<<Tag/binary, "_start">>,
+             <<Tag/binary, "_stop">>];
+        ?RUNNING ->
+            %% if our current is running
+            %% only return stop event
+            [<<Tag/binary, "_stop">>];
+        ?STOPPED ->
+            []
+    end,
+    {Events, State#state{current=?STOPPED}};
+
+get_events(Phase, Tag, State) when is_binary(Tag) ->
+    lager:info("NON EVENT ~p ~p", [Phase, Tag]),
+    {undefined, State}.
