@@ -17,3 +17,5 @@ https://www.youtube.com/watch?v=gCQfFXSHSxw
 
 - can we run this benchmark?
 http://www.cs.utexas.edu/~vijay/papers/sosp17-pebblesdb.pdf
+
+- use spot instances for all nodes except for the erlang and database node
