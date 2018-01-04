@@ -48,19 +48,52 @@ watch(Body, Cfg) ->
 init([]) ->
     {ok, []}.
 
-handle_event(added, #{metadata := #{name := Name}}, State) ->
-    lager:info("Added : ~p~n", [Name]),
-    {ok, State};
-handle_event(deleted, #{metadata := #{name := Name}}, State) ->
-    lager:info("Deleted : ~p~n", [Name]),
-    {ok, State};
-handle_event(modified, #{metadata := #{name := Name}}, State) ->
-    lager:info("Modified : ~p~n", [Name]),
-    {ok, State};
 handle_event(error, #{message := Message}, State) ->
     lager:info("Error : ~p~n", [Message]),
+    {ok, State};
+handle_event(Type, #{metadata := #{labels := Labels}}, State) ->
+    %% extract exp id and tag pod info
+    %% from its labels
+    #{<<"expId">> := ExpId,
+      <<"tag">> := Tag} = Labels,
+
+    EventName = event_name(Type, Tag),
+
+    %% if a valid event,
+    %% register it in event manager
+    case EventName of
+        undefined ->
+            ok;
+        _ ->
+            cal_event_manager:register(ExpId, EventName)
+    end,
+
+    %% if event type from kuberl
+    %% is deleted, stop watching
+    case Type of
+        deleted ->
+            %% TODO proper watch stop
+            WatchPid = self(),
+            spawn(fun() -> gen_statem:stop(WatchPid) end);
+        _ ->
+            ok
+    end,
+
     {ok, State}.
 
 terminate(Reason, _State) ->
     lager:info("Terminating : ~p~n", [Reason]),
     ok.
+
+%% @private Create event name given the event type from kuberl watch
+%%          and the pod tag.
+%%          If the event type is added,
+%%          the event name is tag_start.
+%%          If the event type is deleted,
+%%          the event name is tag_stop.
+event_name(added, Tag) when is_binary(Tag) ->
+    <<Tag/binary, "_start">>;
+event_name(deleted, Tag) when is_binary(Tag) ->
+    <<Tag/binary, "_stop">>;
+event_name(modified, Tag) when is_binary(Tag) ->
+    undefined.
