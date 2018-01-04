@@ -20,7 +20,7 @@ experiment:
     value: 100
   workflow:
     start:
-      name: server-ready
+      name: server_start
       value: 3
 - tag: client2
   image: vitorenesduarte/cal-example

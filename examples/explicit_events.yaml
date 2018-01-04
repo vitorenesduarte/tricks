@@ -1,0 +1,24 @@
+apiVersion: v1
+experiment:
+- tag: server
+  image: vitorenesduarte/cal-example
+  replicas: 3
+  env:
+  - name: TYPE
+    value: server
+  workflow:
+    stop:
+      name: client1_stop
+      value: 3
+- tag: client1
+  image: vitorenesduarte/cal-example
+  replicas: 3
+  env:
+  - name: TYPE
+    value: client
+  - name: OPS
+    value: 100
+  workflow:
+    start:
+      name: server-ready
+      value: 3
