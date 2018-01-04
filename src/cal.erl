@@ -73,7 +73,7 @@ do_run(Experiment) ->
                                             EntrySpec),
 
                     %% schedule pod
-                    cal_scheduler:schedule_pod(Body, Start, End)
+                    cal_scheduler:schedule_pod(ExpId, Body, Start, End)
                 end,
                 lists:seq(1, Replicas)
             )
@@ -88,5 +88,12 @@ do_run(Experiment) ->
     {now | event(), never | event()}.
 get_workflow_info(EntrySpec) ->
     Workflow = maps:get(<<"workflow">>, EntrySpec, #{}),
-    {maps:get(<<"start">>, Workflow, now),
-     maps:get(<<"stop">>,  Workflow, never)}.
+    {parse_info(maps:get(<<"start">>, Workflow, now)),
+     parse_info(maps:get(<<"stop">>,  Workflow, never))}.
+
+%% @private
+parse_info(#{<<"name">> := Name,
+             <<"value">> := Value}) ->
+    {Name, Value};
+parse_info(A) when is_atom(A) ->
+    A.

@@ -55,9 +55,13 @@ register(ExpId, EventName) ->
 
 %% @doc Subscribe an event.
 %%      When and event has occurred a certain
-%%      number of times, a message {subscription, event()}
+%%      number of times, a message {notification, exp_id(), event()}
 %%      is sent to the process with the pid
 %%      passed as argument.
+%%
+%%      IMPORTANT: if there are two subscriptions from the same
+%%      process for the same event,
+%%      only one notification is sent.
 -spec subscribe(exp_id(), event(), pid()) -> ok | error().
 subscribe(ExpId, Event, Pid) ->
     gen_server:call(?MODULE, {subscribe, ExpId, Event, Pid}, infinity).
@@ -69,6 +73,8 @@ init([]) ->
 
 handle_call({subscribe, ExpId, Event, Pid}, _From,
             #state{exp_to_data=ETD0}=State) ->
+    lager:info("Subscription [~p] ~p", [ExpId, Event]),
+
     ETD1 = dict:update(
         ExpId,
         fun(#{subs := Subs}=D) ->
@@ -80,7 +86,8 @@ handle_call({subscribe, ExpId, Event, Pid}, _From,
     ),
     {reply, ok, State#state{exp_to_data=ETD1}}.
 
-handle_cast({register, ExpId, EventName}, #state{exp_to_data=ETD0}=State) ->
+handle_cast({register, ExpIdBin, EventName}, #state{exp_to_data=ETD0}=State) ->
+    ExpId = binary_to_integer(ExpIdBin),
     lager:info("Event [~p] ~p", [ExpId, EventName]),
 
     ETD1 = dict:update(
@@ -97,7 +104,9 @@ handle_cast({register, ExpId, EventName}, #state{exp_to_data=ETD0}=State) ->
                 {ok, Pids} ->
                     %% if there is,
                     %% notify all pids
-                    [Pid ! {subscription, Event} || Pid <- Pids];
+                    %% TODO remove subscription?
+                    [Pid ! {notification, ExpId, Event} ||
+                     Pid <- ordsets:from_list(Pids)];
                 error ->
                     ok
             end,

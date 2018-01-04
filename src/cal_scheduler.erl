@@ -27,15 +27,18 @@
 
 %% API
 -export([start_link/0,
-         schedule_pod/3]).
+         schedule_pod/4]).
 
 %% gen_server callbacks
 -export([init/1,
          handle_call/3,
-         handle_cast/2]).
+         handle_cast/2,
+         handle_info/2]).
+
+-type schedule() :: dict:dict({exp_id(), event()}, {start | stop, maps:map()}).
 
 -record(state, {kuberl_cfg :: maps:map(),
-                pod_schedule :: orddict:orddict()}).
+                schedule :: schedule()}).
 
 -type state_t() :: #state{}.
 
@@ -45,10 +48,12 @@ start_link() ->
 
 %% @doc Schedule pod, given its kuberl pod body
 %%      and workflow start and stop information.
--spec schedule_pod(maps:map(), now | event(), never | event()) ->
+-spec schedule_pod(exp_id(), maps:map(), now | event(), never | event()) ->
     ok | error().
-schedule_pod(Body, Start, Stop) ->
-    gen_server:call(?MODULE, {schedule_pod, Body, Start, Stop}, infinity).
+schedule_pod(ExpId, Body, Start, Stop) ->
+    gen_server:call(?MODULE,
+                    {schedule_pod, ExpId, Body, Start, Stop},
+                    infinity).
 
 init([]) ->
     lager:info("cal scheduler initialized!"),
@@ -58,15 +63,16 @@ init([]) ->
     Cfg = #{},
 
     {ok, #state{kuberl_cfg=Cfg,
-                pod_schedule=orddict:new()}}.
+                schedule=dict:new()}}.
 
-handle_call({schedule_pod, Body, Start, Stop}, _From, State0) ->
+handle_call({schedule_pod, ExpId, Body, Start, Stop}, _From, State0) ->
     %% schedule start
     State1 = case Start of
         now ->
-            run_pod(Body, State0);
+            ok = start_pod(Body, State0),
+            State0;
         _ ->
-            add_pod_to_schedule(start, Start, Body, State0)
+            add_pod_to_schedule(start, ExpId, Body, Start, State0)
     end,
 
     %% schedule stop
@@ -74,7 +80,7 @@ handle_call({schedule_pod, Body, Start, Stop}, _From, State0) ->
         never ->
             State1;
         _ ->
-            add_pod_to_schedule(stop, Stop, Body, State1)
+            add_pod_to_schedule(stop, ExpId, Body, Stop, State1)
     end,
 
     {reply, ok, State2}.
@@ -82,9 +88,28 @@ handle_call({schedule_pod, Body, Start, Stop}, _From, State0) ->
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
+handle_info({notification, ExpId, Event}, #state{schedule=Schedule}=State0) ->
+    lager:info("Notification [~p] ~p", [ExpId, Event]),
+
+    %% TODO remove from schedule
+    List = dict:fetch({ExpId, Event}, Schedule),
+    lists:foreach(
+        fun({What, Body}) ->
+            case What of
+                start ->
+                    start_pod(Body, State0);
+                stop ->
+                    stop_pod(Body, State0)
+            end
+        end,
+        List
+    ),
+
+    {noreply, State0}.
+
 %% @private
--spec run_pod(maps:map(), state_t()) -> state_t().
-run_pod(Body, #state{kuberl_cfg=Cfg}=State) ->
+-spec start_pod(maps:map(), state_t()) -> ok.
+start_pod(Body, #state{kuberl_cfg=Cfg}) ->
     Result = kuberl_core_v1_api:create_namespaced_pod(
         ?CTX,
         ?NAMESPACE,
@@ -96,15 +121,36 @@ run_pod(Body, #state{kuberl_cfg=Cfg}=State) ->
         {ok, _, _ResponseInfo} ->
             cal_pod_watch:watch(Body, Cfg);
         _ ->
-            lager:info("Error creating pod ~p", [Result])
+            lager:info("Error starting pod ~p", [Result])
     end,
 
-    State.
+    ok.
+
+%% @private
+-spec stop_pod(maps:map(), state_t()) -> ok.
+stop_pod(#{<<"metadata">> := #{<<"name">> := PodName}}=_Body,
+         #state{kuberl_cfg=Cfg}) ->
+    Result = kuberl_core_v1_api:delete_namespaced_pod(
+        ?CTX,
+        PodName,
+        ?NAMESPACE,
+        #{},
+        #{cfg => Cfg}
+    ),
+
+    case Result of
+        {ok, _, _ResponseInfo} ->
+            ok;
+        _ ->
+            lager:info("Error stoping pod", [Result])
+    end.
 
 %% @private add start or pod stop to schedule
 %% TODO what if event is already true?
--spec add_pod_to_schedule(start | stop, event(), map:map(), state_t()) ->
-    state_t().
-add_pod_to_schedule(What, Event, Body, #state{pod_schedule=Schedule0}=State) ->
-    Schedule1 = orddict:append(Event, {What, Body}, Schedule0),
-    State#state{pod_schedule=Schedule1}.
+-spec add_pod_to_schedule(start | stop, exp_id(), map:map(), event(),
+                          state_t()) -> state_t().
+add_pod_to_schedule(What, ExpId, Body, Event,
+                    #state{schedule=Schedule0}=State) ->
+    cal_event_manager:subscribe(ExpId, Event, self()),
+    Schedule1 = dict:append({ExpId, Event}, {What, Body}, Schedule0),
+    State#state{schedule=Schedule1}.
