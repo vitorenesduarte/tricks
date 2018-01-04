@@ -34,7 +34,7 @@
          handle_call/3,
          handle_cast/2]).
 
--record(state, {kuberl_cfg :: maps:map()}).
+-record(state, {}).
 
 -spec start_link() -> {ok, pid()} | ignore | error().
 start_link() ->
@@ -47,27 +47,23 @@ run(Exp) ->
 
 init([]) ->
     lager:info("cal initialized!"),
+    {ok, #state{}}.
 
-    %% init kuberl
-    %Cfg = kuberl:cfg_with_host("kubernetes.default"),
-    Cfg = #{},
-
-    {ok, #state{kuberl_cfg=Cfg}}.
-
-handle_call({run, Experiment}, _From, #state{kuberl_cfg=Cfg}=State) ->
-    run(Experiment, Cfg),
+handle_call({run, Experiment}, _From, State) ->
+    do_run(Experiment),
     {reply, ok, State}.
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
 %% @private Run an experiment given its config and kuberl config.
-run(Experiment, Cfg) ->
+do_run(Experiment) ->
     #{<<"experiment">> := EntrySpecs} = Experiment,
     ExpId = cal_exp:exp_id(),
 
     lists:foreach(
         fun(#{<<"replicas">> := Replicas}=EntrySpec) ->
+            {Start, End} = get_workflow_info(EntrySpec),
 
             lists:foreach(
                 fun(PodId) ->
@@ -76,22 +72,27 @@ run(Experiment, Cfg) ->
                                             PodId,
                                             EntrySpec),
 
-                    %% create pod
-                    Ctx = ctx:background(),
-                    Namespace = <<"default">>,
-                    R = kuberl_core_v1_api:create_namespaced_pod(
-                        Ctx,
-                        Namespace,
-                        Body,
-                        #{cfg => Cfg}
-                    ),
-                    lager:info("Response ~p", [R]),
-
-                    cal_pod_watch:watch(Body, Cfg)
-
+                    %% schedule pod
+                    cal_scheduler:schedule_pod(Body, Start, End)
                 end,
                 lists:seq(1, Replicas)
             )
         end,
         EntrySpecs
     ).
+
+%% @private Get workflow info.
+%%           - Default start: now
+%%           - Default stop : never
+-spec get_workflow_info(maps:map()) ->
+    {now | event(), never | event()}.
+get_workflow_info(EntrySpec) ->
+    Workflow = maps:get(<<"workflow">>, EntrySpec, #{}),
+    {parse_info(maps:get(<<"start">>, Workflow, now)),
+     parse_info(maps:get(<<"stop">>,  Workflow, never))}.
+
+%% @private
+parse_info(I) when is_atom(I) ->
+    I;
+parse_info({Name, Value}) when is_binary(Name), is_binary(Value) ->
+    {Name, binary_to_integer(Value)}.

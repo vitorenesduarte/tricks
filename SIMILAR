@@ -1,0 +1,19 @@
+- YSCB:
+https://b9f6702a-a-62cb3a1a-s-sites.googlegroups.com/site/brianfrankcooper/home/publications/ycsb.pdf?attachauth=ANoY7cpOkoD-7jTuXt1IlMv5-IQ5SZH8IYgP8DQTRCpwNir7-G5ShoKnbQDmLdtkECjmJIEipE0v_QvoRPHIbvA3-co4r2pkk3Hc-FeFJMelvUtzC81d5ZZ5XN_dKJ88BXP5yLg_nRVxM6qkxvJekGGAo8Qh0R2b4re3p9hXP_s_NjOKjWZFoulp95FEfXYoEoKElmORlx4ybxKHb47ezf7RlMrLvMYGvJDHg9GRsVoUKnZww8D45Fw%3D&attredirects=0
+
+- barrier using zk (from YSCB++):
+http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.220.4065&rep=rep1&type=pdf
+
+- YCSB+T: (transactions)
+https://www.researchgate.net/profile/Akon_Dey/publication/269306582_YCSBT_Benchmarking_web-scale_transactional_databases/links/5638429f08ae7f7eb1853097.pdf
+
+- SoA on NoSQL benchmarks
+https://research.spec.org/icpe_proceedings/2017/companion/p107.pdf
+
+- this job is too hard:
+https://www.youtube.com/watch?v=gCQfFXSHSxw
+
+- riseml
+
+- can we run this benchmark?
+http://www.cs.utexas.edu/~vijay/papers/sosp17-pebblesdb.pdf

@@ -34,7 +34,7 @@
 %% @doc Watch changes on pod.
 %%      It takes as an argument
 %%      kuberl pod body.
--spec watch(maps:map(), maps:map()) -> ok.
+-spec watch(maps:map(), maps:map()) -> {ok, pid()} | ignore | error().
 watch(Body, Cfg) ->
     Optional = #{params => #{labelSelector => cal_exp:label_selector(Body)},
                  cfg => Cfg},
@@ -49,18 +49,18 @@ init([]) ->
     {ok, []}.
 
 handle_event(added, #{metadata := #{name := Name}}, State) ->
-    io:format("Added : ~p~n", [Name]),
+    lager:info("Added : ~p~n", [Name]),
     {ok, State};
 handle_event(deleted, #{metadata := #{name := Name}}, State) ->
-    io:format("Deleted : ~p~n", [Name]),
+    lager:info("Deleted : ~p~n", [Name]),
     {ok, State};
 handle_event(modified, #{metadata := #{name := Name}}, State) ->
-    io:format("Modified : ~p~n", [Name]),
+    lager:info("Modified : ~p~n", [Name]),
     {ok, State};
 handle_event(error, #{message := Message}, State) ->
-    io:format("Error : ~p~n", [Message]),
+    lager:info("Error : ~p~n", [Message]),
     {ok, State}.
 
 terminate(Reason, _State) ->
-    io:format("Terminating : ~p~n", [Reason]),
+    lager:info("Terminating : ~p~n", [Reason]),
     ok.

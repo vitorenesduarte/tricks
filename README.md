@@ -6,11 +6,11 @@ An experiment is one or more CE's.
 ### Features
 - Register occurrence of events. Each event has a counter associated.
 - Workflow (e.g. only start a given CE once event X counter is Y)
-- Implicit events (`start` and `end` of CE)
+- Implicit events (`start` and `stop` of CE)
 
 ### Example
 
-In this example, event `client1_end` and `client2_end`
+In this example, event `client1_stop` and `client2_stop`
 are implicit events,
 while `server-ready` is an event registered by replicas
 in the `server` CE.
@@ -25,8 +25,8 @@ experiment:
   - name: TYPE
     value: server
   workflow:
-    end:
-      name: client2_end
+    stop:
+      name: client2_stop
       value: 6
 - tag: client1
   image: vitorenesduarte/cal-example
@@ -50,7 +50,7 @@ experiment:
     value: 200
   workflow:
     start:
-      name: client1_end
+      name: client1_stop
       value: 3
 ```
 
