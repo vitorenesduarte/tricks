@@ -41,7 +41,7 @@ watch(Body, Cfg) ->
     kuberl_watch:start_link(?MODULE,
                             kuberl_core_v1_api,
                             list_namespaced_pod,
-                            [ctx:background(), <<"default">>],
+                            [?CTX, ?NAMESPACE],
                             Optional,
                             []).
 

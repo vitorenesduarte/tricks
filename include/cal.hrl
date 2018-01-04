@@ -1,5 +1,9 @@
 -define(APP, cal).
 
+%% kuberl
+-define(CTX, ctx:background()).
+-define(NAMESPACE, <<"default">>).
+
 %% error
 -type error() :: {error, term()}.
 

@@ -25,9 +25,6 @@
 
 -behaviour(gen_server).
 
--define(CTX, ctx:background()).
--define(NAMESPACE, <<"default">>).
-
 %% API
 -export([start_link/0,
          schedule_pod/3]).
