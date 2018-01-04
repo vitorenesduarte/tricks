@@ -54,8 +54,8 @@ handle_event(error, #{message := Message}, State) ->
 handle_event(Type, #{metadata := #{labels := Labels}}, State) ->
     %% extract exp id and tag pod info
     %% from its labels
-    #{<<"expId">> := ExpId,
-      <<"tag">> := Tag} = Labels,
+    #{expId := ExpId,
+      tag   := Tag} = Labels,
 
     EventName = event_name(Type, Tag),
 
