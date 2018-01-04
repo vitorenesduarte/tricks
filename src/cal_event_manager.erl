@@ -67,7 +67,8 @@ init([]) ->
 
     {ok, #state{exp_to_data=dict:new()}}.
 
-handle_call({subscribe, ExpId, Event, Pid}, _From, #state{exp_to_data=ETD0}=State) ->
+handle_call({subscribe, ExpId, Event, Pid}, _From,
+            #state{exp_to_data=ETD0}=State) ->
     ETD1 = dict:update(
         ExpId,
         fun(#{subs := Subs}=D) ->
@@ -86,7 +87,7 @@ handle_cast({register, ExpId, EventName}, #state{exp_to_data=ETD0}=State) ->
               events := Events0}=D) ->
             Events1 = dict:update_counter(EventName, 1, Events0),
             Value = dict:fetch(EventName, Events1),
-            
+
             %% check if there's a subscription on
             %% this event
             Event = {EventName, Value},
@@ -94,12 +95,7 @@ handle_cast({register, ExpId, EventName}, #state{exp_to_data=ETD0}=State) ->
                 {ok, Pids} ->
                     %% if there is,
                     %% notify all pids
-                    lists:foreach(
-                        fun(Pid) ->
-                            Pid ! {subscription, Event}
-                        end,
-                        Pids
-                    );
+                    [Pid ! {subscription, Event} || Pid <- Pids];
                 error ->
                     ok
             end,
