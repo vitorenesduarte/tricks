@@ -24,22 +24,22 @@
 -include("cal.hrl").
 
 %% API
--export([hello_world/0]).
-
--define(SEP, <<"-">>).
+-export([hello_world/0,
+         workflow/0]).
 
 %% @doc Run hello world example.
 -spec hello_world() -> ok.
 hello_world() ->
-   Exp = #{<<"apiVersion">> => <<"v1">>,
-           <<"experiment">> =>
-           [#{<<"tag">> => <<"hello-world">>,
-              <<"image">> => <<"vitorenesduarte/cal-example">>,
-              <<"replicas">> => 1,
-              <<"env">> =>
-              [#{<<"name">> => <<"TYPE">>,
-                 <<"value">> => <<"hello-world">>},
-               #{<<"name">> => <<"COUNT">>,
-                 <<"value">> => <<"1000">>}]}]},
+    run("examples/json/hello-world.json").
 
-   cal:run(Exp).
+%% @doc Run workflow example.
+-spec workflow() -> ok.
+workflow() ->
+    run("examples/json/workflow.json").
+
+%% @private
+run(File) ->
+    {ok, Bin} = file:read_file(File),
+    Exp = jsx:decode(Bin, [return_maps]),
+    lager:info("EXP ~p", [Exp]),
+    cal:run(Exp).
