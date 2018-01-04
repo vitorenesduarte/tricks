@@ -24,21 +24,12 @@
 -include("cal.hrl").
 
 %% API
--export([hello_world/0,
-         workflow/0]).
+-export([run/1]).
 
-%% @doc Run hello world example.
--spec hello_world() -> ok.
-hello_world() ->
-    run("examples/json/hello-world.json").
-
-%% @doc Run workflow example.
--spec workflow() -> ok.
-workflow() ->
-    run("examples/json/workflow.json").
-
-%% @private
-run(File) ->
+%% @doc Run example.
+-spec run(string()) -> ok.
+run(Name) ->
+    File = "examples/json/" ++ Name ++ ".json",
     {ok, Bin} = file:read_file(File),
     Exp = jsx:decode(Bin, [return_maps]),
     lager:info("EXP ~p", [Exp]),
