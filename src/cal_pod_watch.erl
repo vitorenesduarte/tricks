@@ -101,7 +101,8 @@ get_events(<<"Running">>, Tag,
     Events = [<<Tag/binary, "_start">>],
     {Events, State#state{current=?RUNNING}};
 
-get_events(<<"Succeeded">>, Tag, #state{current=Current}=State) when is_binary(Tag) ->
+get_events(<<"Succeeded">>, Tag,
+           #state{current=Current}=State) when is_binary(Tag) ->
     Events = case Current of
         ?PENDING ->
             %% if succeeded and our current is pending,
