@@ -1,6 +1,6 @@
 # tricks 
 
-A tricks entry (TE) is a set of replicas.
+A tricks entry (TE) is a set of replicas/pods.
 An experiment is one or more TE's.
 
 ### Features
