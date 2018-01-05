@@ -28,7 +28,8 @@
 -endif.
 
 %% API
--export([binary_join/2]).
+-export([binary_join/2,
+         parse/2]).
 
 %% @doc Join a list of binaries using a given separator.
 -spec binary_join(binary(), list(binary())) -> binary().
@@ -36,6 +37,29 @@ binary_join(_Sep, []) ->
     <<>>;
 binary_join(Sep, List) ->
     binary_join(Sep, List, <<>>).
+
+%% @doc Parse a given term.
+parse(binary, A) when is_binary(A) ->
+    A;
+parse(integer, A) when is_integer(A) ->
+    A;
+parse(event, A) ->
+    parse({binary, integer}, A);
+parse({T1, T2}, {A, B}) ->
+    {parse(T1, A), parse(T2, B)};
+
+parse(binary, A) when is_integer(A) ->
+    integer_to_binary(A);
+parse(binary, A) when is_list(A) ->
+    list_to_binary(A);
+parse(binary, A) when is_atom(A) ->
+    atom_to_binary(A, utf8);
+
+parse(integer, A) when is_binary(A) ->
+    binary_to_integer(A);
+parse(integer, A) when is_list(A) ->
+    list_to_integer(A).
+
 
 %% @private
 binary_join(_Sep, [E], Bin) ->
