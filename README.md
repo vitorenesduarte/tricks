@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/vitorenesduarte/tricks.svg?branch=master)](https://travis-ci.org/vitorenesduarte/tricks)
+
 # tricks 
 
 A tricks entry (TE) is a set of replicas/pods.
