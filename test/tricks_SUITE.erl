@@ -70,7 +70,7 @@ hello_world_test(_Config) ->
     test_util:event_subscribe(ExpId, {"hello-world_stop", 1}, Receiver),
 
     %% wait for start
-    test_util:event_expect(ExpId, {"hello-world_start", 1}, 5),
+    test_util:event_expect(ExpId, {"hello-world_start", 1}, 20),
     %% wait for stop
     test_util:event_expect(ExpId, {"hello-world_stop", 1}, 60),
     
