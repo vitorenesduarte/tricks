@@ -53,8 +53,8 @@ handle_call({run, Experiment}, _From, State) ->
     do_run(Experiment),
     {reply, ok, State}.
 
-handle_cast(_Msg, State) ->
-    {noreply, State}.
+handle_cast(Msg, State) ->
+    {stop, {unhandled, Msg}, State}.
 
 %% @private Run an experiment given its config and kuberl config.
 do_run(Experiment) ->

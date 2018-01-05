@@ -40,13 +40,13 @@
 
 %% @doc Ranch callback when a new connection is accepted.
 start_link(Ref, Socket, ranch_tcp, _Opts = []) ->
-    Arg = [in, Ref, Socket],
+    Arg = [Ref, Socket],
     {ok, proc_lib:spawn_link(?MODULE,
                              init,
                              [Arg])}.
 
 %% @doc Implementation of `ranch_protocol' using `gen_server'.
-init([in, Ref, Socket]) ->
+init([Ref, Socket]) ->
     lager:info("New client connection ~p", [Socket]),
 
     %% configure socket
@@ -62,23 +62,23 @@ handle_call(Msg, _From, State) ->
 handle_cast(Msg, State) ->
     {stop, {unhandled, Msg}, State}.
 
-handle_info({tcp, Socket, Data}, State) ->
-    do_receive(Data, Socket),
+handle_info({tcp, Socket, Bin}, State) ->
+    do_receive(Bin, Socket),
     {noreply, State};
 
 handle_info({tcp_closed, Socket}, State) ->
     lager:info("TCP client socket closed ~p", [Socket]),
     {stop, normal, State};
 
-handle_info({deliver, MessageSet}, #state{socket=Socket}=State) ->
-
-    cal_client_socket:send(Socket, MessageSet),
+handle_info({notification, ExpId, Event}, #state{socket=Socket}=State) ->
+    Message = cal_client_message:encode_notification(ExpId, Event),
+    cal_client_socket:send(Socket, Message),
     {noreply, State}.
 
 %% @private
-do_receive(Data, Socket) ->
-    %% decode operation
-    Message = cal_util:parse_json(Data),
+do_receive(Bin, Socket) ->
+    %% decode message
+    Message = cal_client_message:decode(Bin),
 
     lager:info("MESSAGE ~p", [Message]),
 

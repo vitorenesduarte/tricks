@@ -85,8 +85,8 @@ handle_call({schedule_pod, ExpId, Body, Start, Stop}, _From, State0) ->
 
     {reply, ok, State2}.
 
-handle_cast(_Msg, State) ->
-    {noreply, State}.
+handle_cast(Msg, State) ->
+    {stop, {unhandled, Msg}, State}.
 
 handle_info({notification, ExpId, Event}, #state{schedule=Schedule}=State0) ->
     lager:info("Notification [~p] ~p", [ExpId, Event]),
