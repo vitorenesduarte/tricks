@@ -25,7 +25,7 @@ test: eunit ct
 eunit:
 	${REBAR} eunit
 
-ct:
+ct: clear
 	TRICKS_HOME=${HOME} ${REBAR} ct --readable=false --verbose
 
 cover: test

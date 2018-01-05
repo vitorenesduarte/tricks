@@ -41,7 +41,7 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc Run an experiment.
--spec run(maps:map()) -> ok | error().
+-spec run(maps:map()) -> {ok, exp_id()} | error().
 run(Exp) ->
     gen_server:call(?MODULE, {run, Exp}, infinity).
 
@@ -50,8 +50,8 @@ init([]) ->
     {ok, #state{}}.
 
 handle_call({run, Experiment}, _From, State) ->
-    do_run(Experiment),
-    {reply, ok, State}.
+    ExpId = do_run(Experiment),
+    {reply, {ok, ExpId}, State}.
 
 handle_cast(Msg, State) ->
     {stop, {unhandled, Msg}, State}.
@@ -80,7 +80,9 @@ do_run(Experiment) ->
             )
         end,
         EntrySpecs
-    ).
+    ),
+
+    ExpId.
 
 %% @private Get replicas info.
 %%          Default 1.

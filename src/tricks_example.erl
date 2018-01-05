@@ -24,12 +24,16 @@
 -include("tricks.hrl").
 
 %% API
--export([run/1]).
+-export([run/1,
+         run/2]).
 
-%% @doc Run example.
--spec run(string()) -> ok.
+-spec run(string()) -> {ok, exp_id()}.
 run(Name) ->
-    File = "examples/json/" ++ Name ++ ".json",
+    run(".", Name).
+
+-spec run(string(), string()) -> {ok, exp_id()}.
+run(Dir, Name) ->
+    File = Dir ++ "/examples/json/" ++ Name ++ ".json",
     {ok, Bin} = file:read_file(File),
     Exp = tricks_util:parse_json(Bin),
     lager:info("Config:~n~p", [Exp]),

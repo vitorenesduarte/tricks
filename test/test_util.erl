@@ -31,7 +31,9 @@
          stop/0,
          event_subscribe/3,
          event_register/2,
-         event_expect/2]).
+         event_expect/2,
+         event_expect/3,
+         example_run/1]).
 
 %% @doc Start app.
 start() ->
@@ -96,8 +98,13 @@ event_register(ExpId, EventName0) ->
                   [ExpId, EventName]).
 
 %% @doc Expect an event.
-%%      Fail if it does not meet expectations.
-event_expect(ExpId, Event0) ->
+%%      Fail if it does not meet expectations after 1s.
+event_expect(ExpId, Event) ->
+    event_expect(ExpId, Event, 1).
+
+%% @doc Expect an event.
+%%      Fail if it does not meet expectations after `Wait`s.
+event_expect(ExpId, Event0, Wait) ->
     Event = tricks_util:parse_event(Event0),
     receive
         {notification, ExpId, Event} ->
@@ -105,9 +112,17 @@ event_expect(ExpId, Event0) ->
         {notification, A, B} ->
             ct:fail("Wrong event [~p] ~p", [A, B])
     after
-        1000 ->
+        Wait * 1000 ->
             ct:fail("No event")
     end.
+
+%% @doc Run an example.
+example_run(Name) ->
+    {ok, ExpId} = rpc:call(get(node),
+                           tricks_example,
+                           run,
+                           [home_dir(), Name]),
+    ExpId.
 
 %% @private Start erlang distribution.
 start_erlang_distribution() ->

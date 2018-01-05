@@ -63,6 +63,16 @@ all() ->
 hello_world_test(_Config) ->
     %% start
     ok = test_util:start(),
+    Receiver = self(),
+
+    ExpId = test_util:example_run("hello-world"),
+    test_util:event_subscribe(ExpId, {"hello-world_start", 1}, Receiver),
+    test_util:event_subscribe(ExpId, {"hello-world_stop", 1}, Receiver),
+
+    %% wait for start
+    test_util:event_expect(ExpId, {"hello-world_start", 1}, 5),
+    %% wait for stop
+    test_util:event_expect(ExpId, {"hello-world_stop", 1}, 60),
     
     %% stop
     ok = test_util:stop().
