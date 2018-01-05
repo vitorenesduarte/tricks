@@ -131,8 +131,7 @@ get_events(?STOPPED, Tag, #state{current=Current}=State) ->
     {Events, State#state{current=?STOPPED}}.
 
 %% @private
-event(start, Tag) when is_binary(Tag) ->
-    <<Tag/binary, "_start">>;
-event(stop, Tag) when is_binary(Tag) ->
-    <<Tag/binary, "_stop">>.
-
+event(start, Tag) ->
+    tricks_util:binary_join([Tag, <<"_start">>]);
+event(stop, Tag) ->
+    tricks_util:binary_join([Tag, <<"_stop">>]).

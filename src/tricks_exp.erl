@@ -132,9 +132,6 @@ env(#{tag := Tag,
 -spec parse_env(maps:map()) -> maps:map().
 parse_env([]) ->
     [];
-parse_env([H|T]) ->
-    [maps:map(fun(_, V) -> parse_value(V) end, H) | parse_env(T)].
-
-%% @private
-parse_value(V) when is_integer(V) -> integer_to_binary(V);
-parse_value(V) -> V.
+parse_env([H0|T]) ->
+    H = maps:map(fun(_, V) -> tricks_util:parse_binary(V) end, H0),
+    [H | parse_env(T)].
