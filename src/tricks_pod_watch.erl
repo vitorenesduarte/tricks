@@ -69,7 +69,7 @@ handle_event(Type, #{metadata := #{labels := Labels},
     PodStatus = parse_pod_status(Type, Phase),
     {Events, State1} = case PodStatus of
         ?UNKNOWN ->
-            lager:info("NON EVENT ~p ~p", [Type, Phase]),
+            %lager:info("NON EVENT ~p ~p", [Type, Phase]),
             {[], State0};
         _ ->
             get_events(PodStatus, Tag, State0)

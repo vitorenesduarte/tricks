@@ -32,5 +32,5 @@ run(Name) ->
     File = "examples/json/" ++ Name ++ ".json",
     {ok, Bin} = file:read_file(File),
     Exp = tricks_util:parse_json(Bin),
-    lager:info("EXP ~p", [Exp]),
+    lager:info("Config:~n~p", [Exp]),
     tricks:run(Exp).
