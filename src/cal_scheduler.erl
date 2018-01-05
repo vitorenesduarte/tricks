@@ -130,19 +130,22 @@ start_pod(Body, #state{kuberl_cfg=Cfg}) ->
 -spec stop_pod(maps:map(), state_t()) -> ok.
 stop_pod(#{<<"metadata">> := #{<<"name">> := PodName}}=_Body,
          #state{kuberl_cfg=Cfg}) ->
+    Body = #{},
+    Optional = #{params => #{gracePeriodSeconds => 5},
+                 cfg => Cfg},
     Result = kuberl_core_v1_api:delete_namespaced_pod(
         ?CTX,
         PodName,
         ?NAMESPACE,
-        #{},
-        #{cfg => Cfg}
+        Body,
+        Optional
     ),
 
     case Result of
         {ok, _, _ResponseInfo} ->
             ok;
         _ ->
-            lager:info("Error stoping pod", [Result])
+            lager:info("Error stopping pod", [Result])
     end.
 
 %% @private add start or pod stop to schedule
