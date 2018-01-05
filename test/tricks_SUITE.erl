@@ -54,7 +54,8 @@ end_per_testcase(Case, Config) ->
     Config.
 
 all() ->
-    [hello_world_test].
+    [hello_world_test,
+     implicit_events_test].
 
 %% ===================================================================
 %% tests
@@ -74,5 +75,19 @@ hello_world_test(_Config) ->
     %% wait for stop
     test_util:event_expect(ExpId, {"hello-world_stop", 1}, 60),
     
+    %% stop
+    ok = test_util:stop().
+
+implicit_events_test(_Config) ->
+    %% start
+    ok = test_util:start(),
+    Receiver = self(),
+
+    ExpId = test_util:example_run("implicit-events"),
+    test_util:event_subscribe(ExpId, {"server2_stop", 5}, Receiver),
+
+    %% wait for end of 5 server2
+    test_util:event_expect(ExpId, {"server2_stop", 5}, 300),
+
     %% stop
     ok = test_util:stop().
