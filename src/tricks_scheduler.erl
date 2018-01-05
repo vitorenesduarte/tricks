@@ -35,7 +35,8 @@
          handle_cast/2,
          handle_info/2]).
 
--type schedule() :: dict:dict({exp_id(), event()}, {start | stop, maps:map()}).
+-type schedule() :: dict:dict({exp_id(), event()},
+                              {start_pod | stop_pod, maps:map()}).
 
 -record(state, {kuberl_cfg :: maps:map(),
                 schedule :: schedule()}).
@@ -72,7 +73,7 @@ handle_call({schedule_pod, ExpId, Body, Start, Stop}, _From, State0) ->
             ok = start_pod(Body, State0),
             State0;
         _ ->
-            add_pod_to_schedule(start, ExpId, Body, Start, State0)
+            add_to_schedule(start_pod, ExpId, Body, Start, State0)
     end,
 
     %% schedule stop
@@ -80,7 +81,7 @@ handle_call({schedule_pod, ExpId, Body, Start, Stop}, _From, State0) ->
         never ->
             State1;
         _ ->
-            add_pod_to_schedule(stop, ExpId, Body, Stop, State1)
+            add_to_schedule(stop_pod, ExpId, Body, Stop, State1)
     end,
 
     {reply, ok, State2}.
@@ -88,24 +89,27 @@ handle_call({schedule_pod, ExpId, Body, Start, Stop}, _From, State0) ->
 handle_cast(Msg, State) ->
     {stop, {unhandled, Msg}, State}.
 
-handle_info({notification, ExpId, Event}, #state{schedule=Schedule}=State0) ->
+handle_info({notification, ExpId, Event}, #state{schedule=Schedule0}=State) ->
     lager:info("Notification [~p] ~p", [ExpId, Event]),
 
-    %% TODO remove from schedule
-    List = dict:fetch({ExpId, Event}, Schedule),
+    %% get list of what's scheduled for this event
+    List = dict:fetch({ExpId, Event}, Schedule0),
+    %% and schedule all
     lists:foreach(
         fun({What, Body}) ->
             case What of
-                start ->
-                    start_pod(Body, State0);
-                stop ->
-                    stop_pod(Body, State0)
+                start_pod ->
+                    start_pod(Body, State);
+                stop_pod ->
+                    stop_pod(Body, State)
             end
         end,
         List
     ),
 
-    {noreply, State0}.
+    %% remove from schedule
+    Schedule1 = dict:erase({ExpId, Event}, Schedule0),
+    {noreply, State#state{schedule=Schedule1}}.
 
 %% @private
 -spec start_pod(maps:map(), state_t()) -> ok.
@@ -149,12 +153,10 @@ stop_pod(#{metadata := #{name := PodName}}=_Body,
             lager:info("Error stopping pod", [Result])
     end.
 
-%% @private add start or pod stop to schedule
-%% TODO what if event is already true?
--spec add_pod_to_schedule(start | stop, exp_id(), map:map(), event(),
-                          state_t()) -> state_t().
-add_pod_to_schedule(What, ExpId, Body, Event,
-                    #state{schedule=Schedule0}=State) ->
+%% @private
+-spec add_to_schedule(start_pod | stop_pod, exp_id(), map:map(), event(),
+                      state_t()) -> state_t().
+add_to_schedule(What, ExpId, Body, Event, #state{schedule=Schedule0}=State) ->
     tricks_event_manager:subscribe(ExpId, Event, self()),
     Schedule1 = dict:append({ExpId, Event}, {What, Body}, Schedule0),
     State#state{schedule=Schedule1}.
