@@ -61,8 +61,9 @@ handle_event(_Type, #{metadata := #{labels := Labels},
                       status   := #{phase := Phase}}, State0) ->
     %% extract exp id and tag pod info
     %% from its labels
-    #{expId := ExpId,
+    #{expId := ExpId0,
       tag   := Tag} = Labels,
+    ExpId = cal_util:parse(integer, ExpId0),
 
     {Events, State1} = get_events(Phase, Tag, State0),
 
