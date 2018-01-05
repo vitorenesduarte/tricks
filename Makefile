@@ -1,4 +1,4 @@
-PACKAGE     = cal 
+PACKAGE     = tricks
 REBAR       = rebar3
 HOME        = $(shell pwd)
 
@@ -26,7 +26,7 @@ eunit:
 	${REBAR} eunit
 
 ct:
-	CAL_HOME=${HOME} ${REBAR} ct --readable=false --verbose
+	TRICKS_HOME=${HOME} ${REBAR} ct --readable=false --verbose
 
 cover: test
 	open _build/test/cover/index.html

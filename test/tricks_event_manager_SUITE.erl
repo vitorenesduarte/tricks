@@ -18,12 +18,12 @@
 %%
 %% -------------------------------------------------------------------
 
--module(cal_event_manager_SUITE).
+-module(tricks_event_manager_SUITE).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
--include("cal.hrl").
+-include("tricks.hrl").
 
-%% common_test callbacks
+%% common_test trickslbacks
 -export([suite/0,
          init_per_suite/1,
          end_per_suite/1,
@@ -94,23 +94,23 @@ event_test(_Config) ->
 
 %% @private
 event_subscribe(ExpId, Event0, Pid) ->
-    Event = cal_util:parse_event(Event0),
+    Event = tricks_util:parse_event(Event0),
     ok = rpc:call(get(node),
-                  cal_event_manager,
+                  tricks_event_manager,
                   subscribe,
                   [ExpId, Event, Pid]).
 
 %% @private
 event_register(ExpId, EventName0) ->
-    EventName = cal_util:parse_binary(EventName0),
+    EventName = tricks_util:parse_binary(EventName0),
     ok = rpc:call(get(node),
-                  cal_event_manager,
+                  tricks_event_manager,
                   register,
                   [ExpId, EventName]).
 
 %% @private
 event_expect(ExpId, Event0) ->
-    Event = cal_util:parse_event(Event0),
+    Event = tricks_util:parse_event(Event0),
     receive
         {notification, ExpId, Event} ->
             ok;

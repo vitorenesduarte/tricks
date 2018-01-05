@@ -1,4 +1,4 @@
--define(APP, cal).
+-define(APP, tricks).
 
 %% kuberl
 -define(CTX, ctx:background()).

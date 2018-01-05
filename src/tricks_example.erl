@@ -18,24 +18,19 @@
 %%
 %% -------------------------------------------------------------------
 
--module(cal_app).
+-module(tricks_example).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
--behaviour(application).
+-include("tricks.hrl").
 
-%% application callbacks
--export([start/2,
-         stop/1]).
+%% API
+-export([run/1]).
 
-%% @doc Initialize the application.
-start(_StartType, _StartArgs) ->
-    case cal_sup:start_link() of
-        {ok, Pid} ->
-            {ok, Pid};
-        Other ->
-            {error, Other}
-    end.
-
-%% @doc Stop the application.
-stop(_State) ->
-    ok.
+%% @doc Run example.
+-spec run(string()) -> ok.
+run(Name) ->
+    File = "examples/json/" ++ Name ++ ".json",
+    {ok, Bin} = file:read_file(File),
+    Exp = tricks_util:parse_json(Bin),
+    lager:info("EXP ~p", [Exp]),
+    tricks:run(Exp).

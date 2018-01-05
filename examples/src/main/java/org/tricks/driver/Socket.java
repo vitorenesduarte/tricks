@@ -1,9 +1,9 @@
-package org.cal.driver;
+package org.tricks.driver;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import org.cal.driver.json.Message;
+import org.tricks.driver.json.Message;
 
 /**
  *

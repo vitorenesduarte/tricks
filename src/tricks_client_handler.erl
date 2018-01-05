@@ -19,10 +19,10 @@
 %% -------------------------------------------------------------------
 
 
--module(cal_client_handler).
+-module(tricks_client_handler).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
--include("cal.hrl").
+-include("tricks.hrl").
 
 -behaviour(gen_server).
 -behaviour(ranch_protocol).
@@ -38,7 +38,7 @@
 
 -record(state, {socket :: inet:socket()}).
 
-%% @doc Ranch callback when a new connection is accepted.
+%% @doc Ranch trickslback when a new connection is accepted.
 start_link(Ref, Socket, ranch_tcp, _Opts = []) ->
     Arg = [Ref, Socket],
     {ok, proc_lib:spawn_link(?MODULE,
@@ -51,8 +51,8 @@ init([Ref, Socket]) ->
 
     %% configure socket
     ok = ranch:accept_ack(Ref),
-    ok = cal_client_socket:configure(Socket),
-    ok = cal_client_socket:activate(Socket),
+    ok = tricks_client_socket:configure(Socket),
+    ok = tricks_client_socket:activate(Socket),
 
     gen_server:enter_loop(?MODULE, [], #state{socket=Socket}).
 
@@ -71,16 +71,16 @@ handle_info({tcp_closed, Socket}, State) ->
     {stop, normal, State};
 
 handle_info({notification, ExpId, Event}, #state{socket=Socket}=State) ->
-    Message = cal_client_message:encode_notification(ExpId, Event),
-    cal_client_socket:send(Socket, Message),
+    Message = tricks_client_message:encode_notification(ExpId, Event),
+    tricks_client_socket:send(Socket, Message),
     {noreply, State}.
 
 %% @private
 do_receive(Bin, Socket) ->
     %% decode message
-    Message = cal_client_message:decode(Bin),
+    Message = tricks_client_message:decode(Bin),
 
     lager:info("MESSAGE ~p", [Message]),
 
     %% reactivate socket
-    ok = cal_client_socket:activate(Socket).
+    ok = tricks_client_socket:activate(Socket).

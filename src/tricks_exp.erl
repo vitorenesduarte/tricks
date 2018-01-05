@@ -18,10 +18,10 @@
 %%
 %% -------------------------------------------------------------------
 
--module(cal_exp).
+-module(tricks_exp).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
--include("cal.hrl").
+-include("tricks.hrl").
 
 %% API
 -export([exp_id/0,
@@ -70,12 +70,12 @@ pod_body(ExpId, PodId, #{<<"tag">> := Tag}=EntrySpec0)
 label_selector(#{<<"metadata">> := #{<<"labels">> := Labels}}=_PodBody) ->
     Selectors = maps:fold(
         fun(Label, Value, Acc) ->
-            [cal_util:binary_join(<<"=">>, [Label, Value]) | Acc]
+            [tricks_util:binary_join(<<"=">>, [Label, Value]) | Acc]
         end,
         [],
         Labels
     ),
-    cal_util:binary_join(<<",">>, Selectors).
+    tricks_util:binary_join(<<",">>, Selectors).
 
 %% @private Generate pod name.
 %%          Given it's entry name/tag (x), experiment id (y), and pod (z),

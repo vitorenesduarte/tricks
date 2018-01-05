@@ -18,10 +18,10 @@
 %%
 %% -------------------------------------------------------------------
 
--module(cal_pod_watch).
+-module(tricks_pod_watch).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
--include("cal.hrl").
+-include("tricks.hrl").
 
 %% API
 -export([watch/2]).
@@ -43,7 +43,7 @@
 %%      kuberl pod body.
 -spec watch(maps:map(), maps:map()) -> {ok, pid()} | ignore | error().
 watch(Body, Cfg) ->
-    Optional = #{params => #{labelSelector => cal_exp:label_selector(Body)},
+    Optional = #{params => #{labelSelector => tricks_exp:label_selector(Body)},
                  cfg => Cfg},
     kuberl_watch:start_link(?MODULE,
                             kuberl_core_v1_api,
@@ -64,7 +64,7 @@ handle_event(Type, #{metadata := #{labels := Labels},
     %% from its labels
     #{expId := ExpId0,
       tag   := Tag} = Labels,
-    ExpId = cal_util:parse_integer(ExpId0),
+    ExpId = tricks_util:parse_integer(ExpId0),
 
     PodStatus = parse_pod_status(Type, Phase),
     {Events, State1} = case PodStatus of
@@ -76,7 +76,7 @@ handle_event(Type, #{metadata := #{labels := Labels},
     end,
 
     %% register all events
-    [cal_event_manager:register(ExpId, Event) || Event <- Events],
+    [tricks_event_manager:register(ExpId, Event) || Event <- Events],
 
     %% if pod is stopped,
     %% stop watching

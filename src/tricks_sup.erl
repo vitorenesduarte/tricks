@@ -18,17 +18,17 @@
 %%
 %% -------------------------------------------------------------------
 
--module(cal_sup).
+-module(tricks_sup).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
--include("cal.hrl").
+-include("tricks.hrl").
 
 -behaviour(supervisor).
 
 %% API
 -export([start_link/0]).
 
-%% supervisor callbacks
+%% supervisor trickslbacks
 -export([init/1]).
 
 -define(CHILD(I, Type, Timeout),
@@ -45,8 +45,8 @@ init([]) ->
 
     %% start app, scheduler and event manager
     Actors = [?APP,
-              cal_scheduler,
-              cal_event_manager],
+              tricks_scheduler,
+              tricks_event_manager],
     Children = [?CHILD(A) || A <- Actors],
 
     RestartStrategy = {one_for_one, 10, 10},
@@ -54,13 +54,13 @@ init([]) ->
 
 %% @private
 start_client_acceptor() ->
-    Listener = cal_client_listener,
+    Listener = tricks_client_listener,
     Transport = ranch_tcp,
     %% TODO make this configurable
     Options = [{port, ?PORT},
                {max_connections, 1024},
                {num_acceptors, 1}],
-    ClientHandler = cal_client_handler,
+    ClientHandler = tricks_client_handler,
 
     {ok, _} = ranch:start_listener(Listener,
                                    Transport,

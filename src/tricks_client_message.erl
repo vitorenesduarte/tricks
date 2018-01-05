@@ -1,6 +1,6 @@
 %% -------------------------------------------------------------------
 %%
-%% Copyright (c) 2018 Vitor Enes. All Rights Reserved.
+%% Copyright (c) 2018 Vitor Enes.  All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -18,19 +18,23 @@
 %%
 %% -------------------------------------------------------------------
 
--module(cal_example).
+%% @doc Client socket message encoding.
+
+-module(tricks_client_message).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
--include("cal.hrl").
+-include("tricks.hrl").
 
 %% API
--export([run/1]).
+-export([decode/1,
+         encode_notification/2]).
 
-%% @doc Run example.
--spec run(string()) -> ok.
-run(Name) ->
-    File = "examples/json/" ++ Name ++ ".json",
-    {ok, Bin} = file:read_file(File),
-    Exp = cal_util:parse_json(Bin),
-    lager:info("EXP ~p", [Exp]),
-    cal:run(Exp).
+%% @doc Decode message.
+-spec decode(binary()) -> maps:map().
+decode(Bin) ->
+    tricks_util:parse_json(Bin).
+
+%% @doc Encode notification.
+-spec encode_notification(exp_id(), event()) -> binary().
+encode_notification(_ExpId, _Event) ->
+    <<>>.

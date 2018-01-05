@@ -21,7 +21,7 @@
 -module(test_util).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
--include("cal.hrl").
+-include("tricks.hrl").
 
 -include_lib("common_test/include/ct.hrl").
 -include_lib("eunit/include/eunit.hrl").
@@ -47,7 +47,7 @@ start() ->
             ct:fail(Error)
     end,
 
-    %% load cal
+    %% load tricks 
     ok = rpc:call(Node, application, load, [?APP]),
 
     %% set lager log dir
@@ -99,4 +99,4 @@ codepath() ->
 
 %% @private
 home_dir() ->
-    os:getenv("CAL_HOME", "~/cal").
+    os:getenv("TRICKS_HOME", "~/tricks").

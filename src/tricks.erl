@@ -18,10 +18,10 @@
 %%
 %% -------------------------------------------------------------------
 
--module(cal).
+-module(tricks).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
--include("cal.hrl").
+-include("tricks.hrl").
 
 -behaviour(gen_server).
 
@@ -29,7 +29,7 @@
 -export([start_link/0,
          run/1]).
 
-%% gen_server callbacks
+%% gen_server trickslbacks
 -export([init/1,
          handle_call/3,
          handle_cast/2]).
@@ -46,7 +46,7 @@ run(Exp) ->
     gen_server:call(?MODULE, {run, Exp}, infinity).
 
 init([]) ->
-    lager:info("cal initialized!"),
+    lager:info("tricks initialized!"),
     {ok, #state{}}.
 
 handle_call({run, Experiment}, _From, State) ->
@@ -59,7 +59,7 @@ handle_cast(Msg, State) ->
 %% @private Run an experiment given its config and kuberl config.
 do_run(Experiment) ->
     #{<<"experiment">> := EntrySpecs} = Experiment,
-    ExpId = cal_exp:exp_id(),
+    ExpId = tricks_exp:exp_id(),
 
     lists:foreach(
         fun(#{<<"replicas">> := Replicas}=EntrySpec) ->
@@ -68,12 +68,12 @@ do_run(Experiment) ->
             lists:foreach(
                 fun(PodId) ->
                     %% pod body
-                    Body = cal_exp:pod_body(ExpId,
+                    Body = tricks_exp:pod_body(ExpId,
                                             PodId,
                                             EntrySpec),
 
                     %% schedule pod
-                    cal_scheduler:schedule_pod(ExpId, Body, Start, End)
+                    tricks_scheduler:schedule_pod(ExpId, Body, Start, End)
                 end,
                 lists:seq(1, Replicas)
             )

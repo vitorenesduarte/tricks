@@ -20,10 +20,10 @@
 
 %% @doc Client socket module.
 
--module(cal_client_socket).
+-module(tricks_client_socket).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
--include("cal.hrl").
+-include("tricks.hrl").
 
 %% API
 -export([configure/1,

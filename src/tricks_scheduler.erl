@@ -18,10 +18,10 @@
 %%
 %% -------------------------------------------------------------------
 
--module(cal_scheduler).
+-module(tricks_scheduler).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
--include("cal.hrl").
+-include("tricks.hrl").
 
 -behaviour(gen_server).
 
@@ -29,7 +29,7 @@
 -export([start_link/0,
          schedule_pod/4]).
 
-%% gen_server callbacks
+%% gen_server trickslbacks
 -export([init/1,
          handle_call/3,
          handle_cast/2,
@@ -56,7 +56,7 @@ schedule_pod(ExpId, Body, Start, Stop) ->
                     infinity).
 
 init([]) ->
-    lager:info("cal scheduler initialized!"),
+    lager:info("tricks scheduler initialized!"),
 
     %% init kuberl
     %Cfg = kuberl:cfg_with_host("kubernetes.default"),
@@ -119,7 +119,7 @@ start_pod(Body, #state{kuberl_cfg=Cfg}) ->
 
     case Result of
         {ok, _, _ResponseInfo} ->
-            cal_pod_watch:watch(Body, Cfg);
+            tricks_pod_watch:watch(Body, Cfg);
         _ ->
             lager:info("Error starting pod ~p", [Result])
     end,
@@ -154,6 +154,6 @@ stop_pod(#{<<"metadata">> := #{<<"name">> := PodName}}=_Body,
                           state_t()) -> state_t().
 add_pod_to_schedule(What, ExpId, Body, Event,
                     #state{schedule=Schedule0}=State) ->
-    cal_event_manager:subscribe(ExpId, Event, self()),
+    tricks_event_manager:subscribe(ExpId, Event, self()),
     Schedule1 = dict:append({ExpId, Event}, {What, Body}, Schedule0),
     State#state{schedule=Schedule1}.

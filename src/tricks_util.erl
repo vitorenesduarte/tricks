@@ -18,10 +18,10 @@
 %%
 %% -------------------------------------------------------------------
 
--module(cal_util).
+-module(tricks_util).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
--include("cal.hrl").
+-include("tricks.hrl").
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").

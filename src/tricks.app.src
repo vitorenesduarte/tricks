@@ -1,8 +1,8 @@
-{application, cal,
- [{description, "cal"},
+{application, tricks,
+ [{description, "tricks"},
   {vsn, "0.1.0"},
   {registered, []},
-  {mod, { cal_app, []}},
+  {mod, { tricks_app, []}},
   {applications,
    [kernel,
     stdlib,
@@ -16,5 +16,5 @@
 
   {maintainers, ["Vitor Enes"]},
   {licenses, ["Apache 2.0"]},
-  {links, [{"Github", "https://github.com/vitorenesduarte/cal"}]}
+  {links, [{"Github", "https://github.com/vitorenesduarte/tricks"}]}
  ]}.

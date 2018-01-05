@@ -2,7 +2,7 @@
 
 DIR=$(dirname "$0")
 CONTEXT=${DIR}/../
-IMAGE=vitorenesduarte/cal-example
+IMAGE=vitorenesduarte/tricks-example
 DOCKERFILE=${DIR}/Dockerfile
 
 # build image

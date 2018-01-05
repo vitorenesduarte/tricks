@@ -1,7 +1,7 @@
 apiVersion: v1
 experiment:
 - tag: hello-world
-  image: vitorenesduarte/cal-example
+  image: vitorenesduarte/tricks-example
   replicas: 1
   env:
   - name: TYPE

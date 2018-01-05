@@ -1,4 +1,4 @@
-.PHONY: json
+.PHONY: yaml-to-json
 
 JAR=target/bundle.jar
 

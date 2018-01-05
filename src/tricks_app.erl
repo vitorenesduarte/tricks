@@ -1,6 +1,6 @@
 %% -------------------------------------------------------------------
 %%
-%% Copyright (c) 2018 Vitor Enes.  All Rights Reserved.
+%% Copyright (c) 2018 Vitor Enes. All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -18,23 +18,24 @@
 %%
 %% -------------------------------------------------------------------
 
-%% @doc Client socket message encoding.
-
--module(cal_client_message).
+-module(tricks_app).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
--include("cal.hrl").
+-behaviour(application).
 
-%% API
--export([decode/1,
-         encode_notification/2]).
+%% application trickslbacks
+-export([start/2,
+         stop/1]).
 
-%% @doc Decode message.
--spec decode(binary()) -> maps:map().
-decode(Bin) ->
-    cal_util:parse_json(Bin).
+%% @doc Initialize the application.
+start(_StartType, _StartArgs) ->
+    case tricks_sup:start_link() of
+        {ok, Pid} ->
+            {ok, Pid};
+        Other ->
+            {error, Other}
+    end.
 
-%% @doc Encode notification.
--spec encode_notification(exp_id(), event()) -> binary().
-encode_notification(_ExpId, _Event) ->
-    <<>>.
+%% @doc Stop the application.
+stop(_State) ->
+    ok.

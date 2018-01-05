@@ -1,25 +1,25 @@
-# cal
+# tricks 
 
-A cal entry (CE) is a set of replicas.
-An experiment is one or more CE's.
+A tricks entry (TE) is a set of replicas.
+An experiment is one or more TE's.
 
 ### Features
 - Register occurrence of events. Each event has a counter associated.
-- Workflow (e.g. only start a given CE once event X counter is Y)
-- Implicit events (`start` and `stop` of CE)
+- Workflow (e.g. only start a given TE once event X counter is Y)
+- Implicit events (`start` and `stop` of TE)
 
 ### Example
 
 In this example, event `client1_stop` and `client2_stop`
 are implicit events,
 while `server-ready` is an event registered by replicas
-in the `server` CE.
+in the `server` TE.
 
 ```yaml
 apiVersion: v1
 experiment:
 - tag: server
-  image: vitorenesduarte/cal-example
+  image: vitorenesduarte/tricks-example
   replicas: 3
   env:
   - name: TYPE
@@ -29,7 +29,7 @@ experiment:
       name: client2_stop
       value: 6
 - tag: client1
-  image: vitorenesduarte/cal-example
+  image: vitorenesduarte/tricks-example
   replicas: 3
   env:
   - name: TYPE
@@ -41,7 +41,7 @@ experiment:
       name: server-ready
       value: 3
 - tag: client2
-  image: vitorenesduarte/cal-example
+  image: vitorenesduarte/tricks-example
   replicas: 6
   env:
   - name: TYPE

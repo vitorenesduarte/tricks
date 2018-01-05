@@ -18,10 +18,10 @@
 %%
 %% -------------------------------------------------------------------
 
--module(cal_event_manager).
+-module(tricks_event_manager).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
--include("cal.hrl").
+-include("tricks.hrl").
 
 -behaviour(gen_server).
 
@@ -30,7 +30,7 @@
          register/2,
          subscribe/3]).
 
-%% gen_server callbacks
+%% gen_server trickslbacks
 -export([init/1,
          handle_call/3,
          handle_cast/2]).
@@ -69,7 +69,7 @@ subscribe(ExpId, {Name, Value}=Event, Pid)
     gen_server:call(?MODULE, {subscribe, ExpId, Event, Pid}, infinity).
 
 init([]) ->
-    lager:info("cal event manager initialized!"),
+    lager:info("tricks event manager initialized!"),
 
     {ok, #state{exp_to_data=dict:new()}}.
 
