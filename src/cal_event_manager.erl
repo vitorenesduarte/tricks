@@ -50,7 +50,8 @@ start_link() ->
 
 %% @doc Register the occurrence of an event.
 -spec register(exp_id(), event_name()) -> ok | error().
-register(ExpId, EventName) ->
+register(ExpId, EventName)
+  when is_integer(ExpId), is_binary(EventName) ->
     gen_server:cast(?MODULE, {register, ExpId, EventName}).
 
 %% @doc Subscribe an event.
@@ -63,7 +64,8 @@ register(ExpId, EventName) ->
 %%      process for the same event,
 %%      only one notification is sent.
 -spec subscribe(exp_id(), event(), pid()) -> ok | error().
-subscribe(ExpId, Event, Pid) ->
+subscribe(ExpId, {Name, Value}=Event, Pid)
+  when is_integer(ExpId), is_binary(Name), is_integer(Value), is_pid(Pid) ->
     gen_server:call(?MODULE, {subscribe, ExpId, Event, Pid}, infinity).
 
 init([]) ->
@@ -73,49 +75,53 @@ init([]) ->
 
 handle_call({subscribe, ExpId, Event, Pid}, _From,
             #state{exp_to_data=ETD0}=State) ->
+
     lager:info("Subscription [~p] ~p", [ExpId, Event]),
 
-    ETD1 = dict:update(
-        ExpId,
-        fun(#{subs := Subs}=D) ->
-            %% update subs
-            D#{subs => dict:append(Event, Pid, Subs)}
-        end,
-        ?EMPTY_EXP_DATA,
-        ETD0
-    ),
+    D0 = dict_find(ExpId, ETD0, ?EMPTY_EXP_DATA),
+    #{subs := Subs0} = D0,
+    Subs1 = dict:append(Event, Pid, Subs0),
+
+    %% update subs
+    D1 = D0#{subs => Subs1},
+    ETD1 = dict:store(ExpId, D1, ETD0),
     {reply, ok, State#state{exp_to_data=ETD1}}.
 
-handle_cast({register, ExpIdBin, EventName}, #state{exp_to_data=ETD0}=State) ->
-    ExpId = binary_to_integer(ExpIdBin),
+handle_cast({register, ExpId, EventName}, #state{exp_to_data=ETD0}=State) ->
     lager:info("Event [~p] ~p", [ExpId, EventName]),
 
-    ETD1 = dict:update(
-        ExpId,
-        fun(#{subs := Subs,
-              events := Events0}=D) ->
-            Events1 = dict:update_counter(EventName, 1, Events0),
-            Value = dict:fetch(EventName, Events1),
+    D0 = dict_find(ExpId, ETD0, ?EMPTY_EXP_DATA),
+    #{subs := Subs,
+      events := Events0} = D0,
 
-            %% check if there's a subscription on
-            %% this event
-            Event = {EventName, Value},
-            case dict:find(Event, Subs) of
-                {ok, Pids} ->
-                    %% if there is,
-                    %% notify all pids
-                    %% TODO remove subscription?
-                    [Pid ! {notification, ExpId, Event} ||
-                     Pid <- ordsets:from_list(Pids)];
-                error ->
-                    ok
-            end,
+    Events1 = dict:update_counter(EventName, 1, Events0),
+    Value = dict:fetch(EventName, Events1),
 
-            %% update events
-            D#{events => Events1}
-        end,
-        ?EMPTY_EXP_DATA,
-        ETD0
-    ),
+    %% check if there's a subscription on this event
+    Event = {EventName, Value},
+    case dict:find(Event, Subs) of
+        {ok, Pids} ->
+            %% if there is, notify all pids
+            %% TODO remove subscription?
 
+            UniquePids = ordsets:from_list(Pids),
+            lager:info("Notifying ~p!", [length(UniquePids)]),
+
+            [Pid ! {notification, ExpId, Event} ||
+             Pid <- UniquePids];
+        error ->
+            ok
+    end,
+
+    %% update events
+    D1 = D0#{events => Events1},
+    ETD1 = dict:store(ExpId, D1, ETD0),
     {noreply, State#state{exp_to_data=ETD1}}.
+
+%% @private
+dict_find(Key, Dict, Default) ->
+    case dict:find(Key, Dict) of
+        {ok, V} -> V;
+        error -> Default
+    end.
+

@@ -26,7 +26,7 @@ eunit:
 	${REBAR} eunit
 
 ct:
-	${REBAR} ct --readable=false --verbose
+	CAL_HOME=${HOME} ${REBAR} ct --readable=false --verbose
 
 cover: test
 	open _build/test/cover/index.html
