@@ -1,11 +1,9 @@
-FROM python:slim 
+FROM openjdk:8-slim
 
 MAINTAINER Vitor Enes <vitorenesduarte@gmail.com>
 
-ENV DIR=src/
+ENV JAR=bundle.jar
 
-COPY $DIR /$DIR
+ADD target/$JAR /
 
-WORKDIR $DIR
-
-CMD ["python", "main.py"]
+CMD java -jar $JAR
