@@ -31,6 +31,6 @@
 run(Name) ->
     File = "examples/json/" ++ Name ++ ".json",
     {ok, Bin} = file:read_file(File),
-    Exp = jsx:decode(Bin, [return_maps]),
+    Exp = cal_util:parse_json(Bin),
     lager:info("EXP ~p", [Exp]),
     cal:run(Exp).

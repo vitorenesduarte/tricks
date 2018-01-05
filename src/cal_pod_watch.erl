@@ -64,7 +64,7 @@ handle_event(Type, #{metadata := #{labels := Labels},
     %% from its labels
     #{expId := ExpId0,
       tag   := Tag} = Labels,
-    ExpId = cal_util:parse(integer, ExpId0),
+    ExpId = cal_util:parse_integer(ExpId0),
 
     PodStatus = parse_pod_status(Type, Phase),
     {Events, State1} = case PodStatus of

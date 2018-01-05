@@ -94,7 +94,7 @@ event_test(_Config) ->
 
 %% @private
 event_subscribe(ExpId, Event0, Pid) ->
-    Event = cal_util:parse(event, Event0),
+    Event = cal_util:parse_event(Event0),
     ok = rpc:call(get(node),
                   cal_event_manager,
                   subscribe,
@@ -102,7 +102,7 @@ event_subscribe(ExpId, Event0, Pid) ->
 
 %% @private
 event_register(ExpId, EventName0) ->
-    EventName = cal_util:parse(binary, EventName0),
+    EventName = cal_util:parse_binary(EventName0),
     ok = rpc:call(get(node),
                   cal_event_manager,
                   register,
@@ -110,7 +110,7 @@ event_register(ExpId, EventName0) ->
 
 %% @private
 event_expect(ExpId, Event0) ->
-    Event = cal_util:parse(event, Event0),
+    Event = cal_util:parse_event(Event0),
     receive
         {notification, ExpId, Event} ->
             ok;

@@ -39,9 +39,31 @@ start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init([]) ->
+
+    %% start clients tcp acceptor
+    start_client_acceptor(),
+
+    %% start app, scheduler and event manager
     Actors = [?APP,
               cal_scheduler,
               cal_event_manager],
     Children = [?CHILD(A) || A <- Actors],
+
     RestartStrategy = {one_for_one, 10, 10},
     {ok, {RestartStrategy, Children}}.
+
+%% @private
+start_client_acceptor() ->
+    Listener = cal_client_listener,
+    Transport = ranch_tcp,
+    %% TODO make this configurable
+    Options = [{port, ?PORT},
+               {max_connections, 1024},
+               {num_acceptors, 1}],
+    ClientHandler = cal_client_handler,
+
+    {ok, _} = ranch:start_listener(Listener,
+                                   Transport,
+                                   Options,
+                                   ClientHandler,
+                                   []).

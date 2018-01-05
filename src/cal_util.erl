@@ -29,7 +29,10 @@
 
 %% API
 -export([binary_join/2,
-         parse/2]).
+         parse_binary/1,
+         parse_integer/1,
+         parse_event/1,
+         parse_json/1]).
 
 %% @doc Join a list of binaries using a given separator.
 -spec binary_join(binary(), list(binary())) -> binary().
@@ -38,28 +41,35 @@ binary_join(_Sep, []) ->
 binary_join(Sep, List) ->
     binary_join(Sep, List, <<>>).
 
-%% @doc Parse a given term.
-parse(binary, A) when is_binary(A) ->
+%% @doc Parse a binary.
+-spec parse_binary(term()) -> binary().
+parse_binary(A) when is_binary(A) ->
     A;
-parse(integer, A) when is_integer(A) ->
-    A;
-parse(event, A) ->
-    parse({binary, integer}, A);
-parse({T1, T2}, {A, B}) ->
-    {parse(T1, A), parse(T2, B)};
-
-parse(binary, A) when is_integer(A) ->
+parse_binary(A) when is_integer(A) ->
     integer_to_binary(A);
-parse(binary, A) when is_list(A) ->
+parse_binary(A) when is_list(A) ->
     list_to_binary(A);
-parse(binary, A) when is_atom(A) ->
-    atom_to_binary(A, utf8);
+parse_binary(A) when is_atom(A) ->
+    atom_to_binary(A, utf8).
 
-parse(integer, A) when is_binary(A) ->
+%% @doc Parse an integer.
+-spec parse_integer(term()) -> integer().
+parse_integer(A) when is_integer(A) ->
+    A;
+parse_integer(A) when is_binary(A) ->
     binary_to_integer(A);
-parse(integer, A) when is_list(A) ->
+parse_integer(A) when is_list(A) ->
     list_to_integer(A).
 
+%% @doc Parse an event.
+-spec parse_event(term()) -> event().
+parse_event({A, B}) ->
+    {parse_binary(A), parse_integer(B)}.
+
+%% @doc Parse JSON. Return a map where labels are atoms.
+-spec parse_json(binary()) -> maps:map().
+parse_json(A) ->
+    jsx:decode(A, [return_maps, {labels, atom}]).
 
 %% @private
 binary_join(_Sep, [E], Bin) ->
