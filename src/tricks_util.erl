@@ -28,11 +28,17 @@
 -endif.
 
 %% API
--export([binary_join/2,
+-export([binary_join/1,
+         binary_join/2,
          parse_binary/1,
          parse_integer/1,
          parse_event/1,
          parse_json/1]).
+
+%% @doc Join a list of binaries.
+-spec binary_join(list(binary())) -> binary().
+binary_join(List) ->
+    binary_join(<<>>, List).
 
 %% @doc Join a list of binaries using a given separator.
 -spec binary_join(binary(), list(binary())) -> binary().
@@ -96,6 +102,7 @@ binary_join_test() ->
     Sep1 = <<";">>,
     Sep2 = <<"%3D">>,
 
+    ?assertEqual(<<>>, binary_join(L0)),
     ?assertEqual(<<>>, binary_join(Sep0, L0)),
     ?assertEqual(<<>>, binary_join(Sep1, L0)),
     ?assertEqual(<<"a">>, binary_join(Sep0, L1)),
