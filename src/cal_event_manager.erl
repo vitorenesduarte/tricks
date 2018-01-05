@@ -73,14 +73,27 @@ init([]) ->
 
     {ok, #state{exp_to_data=dict:new()}}.
 
-handle_call({subscribe, ExpId, Event, Pid}, _From,
+handle_call({subscribe, ExpId, {EventName, Value}=Event , Pid}, _From,
             #state{exp_to_data=ETD0}=State) ->
 
     lager:info("Subscription [~p] ~p", [ExpId, Event]),
 
     D0 = dict_find(ExpId, ETD0, ?EMPTY_EXP_DATA),
-    #{subs := Subs0} = D0,
-    Subs1 = dict:append(Event, Pid, Subs0),
+    #{subs := Subs0,
+      events := Events} = D0,
+
+    Current = dict_find(EventName, Events, 0),
+    Subs1 = case Current >= Value of
+        true ->
+            %% event has already happen,
+            %% send notification
+            %% and don't subscribe
+            notify(Pid, ExpId, Event),
+            Subs0;
+        false ->
+            %% otherwise subscribe
+            dict:append(Event, Pid, Subs0)
+    end,
 
     %% update subs
     D1 = D0#{subs => Subs1},
@@ -102,19 +115,20 @@ handle_cast({register, ExpId, EventName}, #state{exp_to_data=ETD0}=State) ->
     case dict:find(Event, Subs) of
         {ok, Pids} ->
             %% if there is, notify all pids
-            %% TODO remove subscription?
-
             UniquePids = ordsets:from_list(Pids),
             lager:info("Notifying ~p!", [length(UniquePids)]),
 
-            [Pid ! {notification, ExpId, Event} ||
-             Pid <- UniquePids];
+            [notify(Pid, ExpId, Event) || Pid <- UniquePids];
         error ->
             ok
     end,
 
-    %% update events
-    D1 = D0#{events => Events1},
+    %% remove subscription
+    Subs1 = dict:erase(Event, Subs),
+
+    %% update events and subs
+    D1 = D0#{events => Events1,
+             subs => Subs1},
     ETD1 = dict:store(ExpId, D1, ETD0),
     {noreply, State#state{exp_to_data=ETD1}}.
 
@@ -124,4 +138,8 @@ dict_find(Key, Dict, Default) ->
         {ok, V} -> V;
         error -> Default
     end.
+
+%% @private
+notify(Pid, ExpId, Event) ->
+    Pid ! {notification, ExpId, Event}.
 

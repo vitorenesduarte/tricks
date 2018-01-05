@@ -81,6 +81,14 @@ event_test(_Config) ->
     event_register(1, event),
     event_expect(1, {event, 2}),
 
+    %% subscription to an event that has already
+    %% ocurred should also be notified
+    event_subscribe(1, {event, 2}, Receiver),
+    event_subscribe(1, {event, 1}, Receiver),
+
+    event_expect(1, {event, 2}),
+    event_expect(1, {event, 1}),
+
     %% stop
     ok = test_util:stop().
 
