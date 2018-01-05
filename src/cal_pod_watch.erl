@@ -34,6 +34,7 @@
 -define(PENDING, 0).
 -define(RUNNING, 1).
 -define(STOPPED, 2).
+-define(UNKNOWN, 3).
 
 -record(state, {current :: ?PENDING | ?RUNNING | ?STOPPED}).
 
@@ -57,24 +58,25 @@ init([]) ->
 handle_event(error, #{message := Message}, State) ->
     lager:info("Error : ~p~n", [Message]),
     {ok, State};
-handle_event(_Type, #{metadata := #{labels := Labels},
-                      status   := #{phase := Phase}}, State0) ->
+handle_event(Type, #{metadata := #{labels := Labels},
+                     status   := #{phase := Phase}}, State0) ->
     %% extract exp id and tag pod info
     %% from its labels
     #{expId := ExpId0,
       tag   := Tag} = Labels,
     ExpId = cal_util:parse(integer, ExpId0),
 
-    {Events, State1} = get_events(Phase, Tag, State0),
-
-    case Events of
-        undefined ->
-            ok;
+    PodStatus = parse_pod_status(Type, Phase),
+    {Events, State1} = case PodStatus of
+        ?UNKNOWN ->
+            lager:info("NON EVENT ~p ~p", [Type, Phase]),
+            {[], State0};
         _ ->
-            %% register all events
-            [cal_event_manager:register(ExpId, Event) ||
-             Event <- Events]
+            get_events(PodStatus, Tag, State0)
     end,
+
+    %% register all events
+    [cal_event_manager:register(ExpId, Event) || Event <- Events],
 
     %% if pod is stopped,
     %% stop watching
@@ -93,32 +95,44 @@ handle_event(_Type, #{metadata := #{labels := Labels},
 terminate(_Reason, _State) ->
     ok.
 
-%% @private Create events given pod phase.
-get_events(<<"Running">>, Tag,
-           #state{current=?PENDING}=State) when is_binary(Tag) ->
+%% @private A pod is stopped if it terminated
+%%          or if it was deleted by us.
+parse_pod_status(_Type, <<"Running">>) ->   ?RUNNING;
+parse_pod_status(_Type, <<"Succeeded">>) -> ?STOPPED;
+parse_pod_status(deleted, _Phase) ->        ?STOPPED;
+parse_pod_status(_, _) ->                   ?UNKNOWN.
+
+%% @private Create events given pod status.
+get_events(?RUNNING, Tag, #state{current=Current}=State) ->
     %% if running,
     %% and our current is pending,
     %% return start event
-    Events = [<<Tag/binary, "_start">>],
+    Events = case Current of
+        ?PENDING ->
+            [event(start, Tag)];
+        _ ->
+            []
+    end,
     {Events, State#state{current=?RUNNING}};
 
-get_events(<<"Succeeded">>, Tag,
-           #state{current=Current}=State) when is_binary(Tag) ->
+get_events(?STOPPED, Tag, #state{current=Current}=State) ->
     Events = case Current of
         ?PENDING ->
             %% if succeeded and our current is pending,
             %% return start and stop events
-            [<<Tag/binary, "_start">>,
-             <<Tag/binary, "_stop">>];
+            [event(start, Tag), event(stop, Tag)];
         ?RUNNING ->
             %% if our current is running
             %% only return stop event
-            [<<Tag/binary, "_stop">>];
+            [event(stop, Tag)];
         ?STOPPED ->
             []
     end,
-    {Events, State#state{current=?STOPPED}};
+    {Events, State#state{current=?STOPPED}}.
 
-get_events(Phase, Tag, State) when is_binary(Tag) ->
-    lager:info("NON EVENT ~p ~p", [Phase, Tag]),
-    {undefined, State}.
+%% @private
+event(start, Tag) when is_binary(Tag) ->
+    <<Tag/binary, "_start">>;
+event(stop, Tag) when is_binary(Tag) ->
+    <<Tag/binary, "_stop">>.
+
