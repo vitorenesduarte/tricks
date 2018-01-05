@@ -34,6 +34,7 @@ script:
   - make xref
   - make dialyzer
   - make lint
+  - rebar3 coveralls send
 
 notifications:
   email: false
