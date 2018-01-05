@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/vitorenesduarte/tricks.svg?branch=master)](https://travis-ci.org/vitorenesduarte/tricks)
+[![Coverage Status](https://coveralls.io/repos/github/vitorenesduarte/tricks/badge.svg?branch=master)](https://coveralls.io/github/vitorenesduarte/tricks?branch=master)
 
 # tricks 
 
