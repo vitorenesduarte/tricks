@@ -1,9 +1,13 @@
 language: erlang
 otp_release:
   - 20.0
+
+# MINIKUBE:
+# - https://blog.travis-ci.com/2017-10-26-running-kubernetes-on-travis-ci-with-minikube
+# - https://github.com/LiliC/travis-minikube
+
 sudo: required
 
-# see https://blog.travis-ci.com/2017-10-26-running-kubernetes-on-travis-ci-with-minikube
 # This moves Kubernetes specific config files.
 env:
   - CHANGE_MINIKUBE_NONE_USER=true
