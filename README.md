@@ -54,6 +54,13 @@ experiment:
       value: 3
 ```
 
+
+### Other examples
+
+- [examples/hello-world.yaml](examples/hello-world.yaml)
+- [examples/implicit-events.yaml](examples/implicit-events.yaml)
+- [examples/explicit-events.yaml](examples/explicit-events.yaml)
+
 # Environment variables (EV)
 
 Configuration of pods is achieved through EVs.
