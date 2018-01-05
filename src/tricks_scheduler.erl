@@ -131,6 +131,7 @@ start_pod(Body, #state{kuberl_cfg=Cfg}) ->
 stop_pod(#{metadata := #{name := PodName}}=_Body,
          #state{kuberl_cfg=Cfg}) ->
     Body = #{},
+    %% TODO Make sure gracePeriodSeconds is being used
     Optional = #{params => #{gracePeriodSeconds => 5},
                  cfg => Cfg},
     Result = kuberl_core_v1_api:delete_namespaced_pod(
