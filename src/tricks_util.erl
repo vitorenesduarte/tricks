@@ -63,9 +63,7 @@ parse_binary(A) when is_atom(A) ->
 parse_integer(A) when is_integer(A) ->
     A;
 parse_integer(A) when is_binary(A) ->
-    binary_to_integer(A);
-parse_integer(A) when is_list(A) ->
-    list_to_integer(A).
+    binary_to_integer(A).
 
 %% @doc Parse an event.
 -spec parse_event(term()) -> event().
