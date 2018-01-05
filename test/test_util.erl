@@ -28,10 +28,12 @@
 
 %% API
 -export([start/0,
-         stop/0]).
+         stop/0,
+         event_subscribe/3,
+         event_register/2,
+         event_expect/2]).
 
 %% @doc Start app.
--spec start() -> atom().
 start() ->
     start_erlang_distribution(),
 
@@ -65,10 +67,10 @@ start() ->
                        ensure_all_started,
                        [?APP]),
 
-    Node.
+    put(node, Node),
+    ok.
 
 %% @doc Stop app.
--spec stop() -> ok.
 stop() ->
     case ct_slave:stop(?APP) of
         {ok, _} ->
@@ -77,8 +79,37 @@ stop() ->
             ct:fail(Error)
     end.
 
+%% @doc Subscribe to an event.
+event_subscribe(ExpId, Event0, Pid) ->
+    Event = tricks_util:parse_event(Event0),
+    ok = rpc:call(get(node),
+                  tricks_event_manager,
+                  subscribe,
+                  [ExpId, Event, Pid]).
+
+%% @doc Register an event.
+event_register(ExpId, EventName0) ->
+    EventName = tricks_util:parse_binary(EventName0),
+    ok = rpc:call(get(node),
+                  tricks_event_manager,
+                  register,
+                  [ExpId, EventName]).
+
+%% @doc Expect an event.
+%%      Fail if it does not meet expectations.
+event_expect(ExpId, Event0) ->
+    Event = tricks_util:parse_event(Event0),
+    receive
+        {notification, ExpId, Event} ->
+            ok;
+        {notification, A, B} ->
+            ct:fail("Wrong event [~p] ~p", [A, B])
+    after
+        1000 ->
+            ct:fail("No event")
+    end.
+
 %% @private Start erlang distribution.
--spec start_erlang_distribution() -> ok.
 start_erlang_distribution() ->
     os:cmd(os:find_executable("epmd") ++ " -daemon"),
 
@@ -93,7 +124,6 @@ start_erlang_distribution() ->
     end.
 
 %% @private
--spec codepath() -> list(file:filename()).
 codepath() ->
     lists:filter(fun filelib:is_dir/1, code:get_path()).
 
