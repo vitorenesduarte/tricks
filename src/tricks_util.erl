@@ -73,9 +73,11 @@ parse_json(A) ->
 
 %% @private
 binary_join(_Sep, [E], Bin) ->
-    <<Bin/binary, E/binary>>;
+    EBin = parse_binary(E),
+    <<Bin/binary, EBin/binary>>;
 binary_join(Sep, [E|Rest], Bin) ->
-    binary_join(Sep, Rest, <<Bin/binary, E/binary, Sep/binary>>).
+    EBin = parse_binary(E),
+    binary_join(Sep, Rest, <<Bin/binary, EBin/binary, Sep/binary>>).
 
 
 %% ===================================================================

@@ -42,16 +42,16 @@ pod_body(ExpId, PodId, EntrySpec) when is_integer(ExpId) ->
     pod_body(integer_to_binary(ExpId), PodId, EntrySpec);
 pod_body(ExpId, PodId, EntrySpec) when is_integer(PodId) ->
     pod_body(ExpId, integer_to_binary(PodId), EntrySpec);
-pod_body(ExpId, PodId, #{<<"tag">> := Tag}=EntrySpec0)
+pod_body(ExpId, PodId, #{tag := Tag}=EntrySpec0)
   when is_binary(ExpId), is_binary(PodId) ->
 
     %% create pod name
     PodName = pod_name(Tag, ExpId, PodId),
 
     %% update entry spec
-    EntrySpec = EntrySpec0#{<<"expId">> => ExpId,
-                            <<"podId">> => PodId,
-                            <<"name">> => PodName},
+    EntrySpec = EntrySpec0#{expId => ExpId,
+                            podId => PodId,
+                            name => PodName},
 
     %% create pod metadata
     Metadata = metadata(EntrySpec),
@@ -60,14 +60,14 @@ pod_body(ExpId, PodId, #{<<"tag">> := Tag}=EntrySpec0)
     Spec = spec(EntrySpec),
 
     %% create request body
-    #{<<"apiVersion">> => <<"v1">>,
-      <<"kind">> => <<"Pod">>,
-      <<"metadata">> => Metadata,
-      <<"spec">> => Spec}.
+    #{apiVersion => <<"v1">>,
+      kind => <<"Pod">>,
+      metadata => Metadata,
+      spec => Spec}.
 
 %% @doc Compute pod label selector.
 -spec label_selector(maps:map()) -> binary().
-label_selector(#{<<"metadata">> := #{<<"labels">> := Labels}}=_PodBody) ->
+label_selector(#{metadata := #{labels := Labels}}=_PodBody) ->
     Selectors = maps:fold(
         fun(Label, Value, Acc) ->
             [tricks_util:binary_join(<<"=">>, [Label, Value]) | Acc]
@@ -87,24 +87,24 @@ pod_name(Tag, ExpId, PodId) ->
 
 %% @private Generate pod metadata.
 -spec metadata(maps:map()) -> maps:map().
-metadata(#{<<"tag">> := Tag,
-           <<"expId">> := ExpId,
-           <<"podId">> := PodId,
-           <<"name">> := PodName}) ->
-    #{<<"name">> => PodName,
-      <<"labels">> => #{<<"tag">> => Tag,
-                        <<"expId">> => ExpId,
-                        <<"podId">> => PodId}}.
+metadata(#{tag := Tag,
+           expId := ExpId,
+           podId := PodId,
+           name := PodName}) ->
+    #{name => PodName,
+      labels => #{tag => Tag,
+                  expId => ExpId,
+                  podId => PodId}}.
 
 %% @private Generate pod spec.
 -spec spec(map:map()) -> maps:map().
-spec(#{<<"name">> := PodName,
-       <<"image">> := Image}=EntrySpec) ->
-    #{<<"restartPolicy">> => <<"Never">>,
-      <<"containers">> => [#{<<"name">> => PodName,
-                             <<"image">> => Image,
-                             <<"imagePullPolicy">> => <<"Always">>,
-                             <<"env">> => env(EntrySpec)}]}.
+spec(#{name  := PodName,
+       image := Image}=EntrySpec) ->
+    #{restartPolicy => <<"Never">>,
+      containers => [#{name => PodName,
+                       image => Image,
+                       imagePullPolicy => <<"Always">>,
+                       env => env(EntrySpec)}]}.
 
 %% @private Append env vars:
 %%   - TAG
@@ -112,20 +112,20 @@ spec(#{<<"name">> := PodName,
 %%   - POD_ID
 %%   - POD_IP
 -spec env(maps:map()) -> maps:map().
-env(#{<<"tag">> := Tag,
-      <<"expId">> := ExpId,
-      <<"podId">> := PodId,
-      <<"env">> := Env}) ->
-    [#{<<"name">> => <<"TAG">>,
-       <<"value">> => Tag},
-     #{<<"name">> => <<"EXP_ID">>,
-       <<"value">> => ExpId},
-     #{<<"name">> => <<"POD_ID">>,
-       <<"value">> => PodId},
-     #{<<"name">> => <<"POD_IP">>,
-       <<"valueFrom">> => #{<<"fieldRef">>
-                            => #{<<"fieldPath">>
-                                 => <<"status.podIP">>}}
+env(#{tag := Tag,
+      expId := ExpId,
+      podId := PodId,
+      env := Env}) ->
+    [#{name => <<"TAG">>,
+       value => Tag},
+     #{name => <<"EXP_ID">>,
+       value => ExpId},
+     #{name => <<"POD_ID">>,
+       value => PodId},
+     #{name => <<"POD_IP">>,
+       valueFrom => #{fieldRef
+                      => #{fieldPath
+                           => <<"status.podIP">>}}
       } | parse_env(Env)].
 
 %% @private Parse env, converting integer values to binary.

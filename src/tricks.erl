@@ -58,11 +58,12 @@ handle_cast(Msg, State) ->
 
 %% @private Run an experiment given its config and kuberl config.
 do_run(Experiment) ->
-    #{<<"experiment">> := EntrySpecs} = Experiment,
+    #{experiment := EntrySpecs} = Experiment,
     ExpId = tricks_exp:exp_id(),
 
     lists:foreach(
-        fun(#{<<"replicas">> := Replicas}=EntrySpec) ->
+        fun(EntrySpec) ->
+            Replicas = get_replicas_info(EntrySpec),
             {Start, End} = get_workflow_info(EntrySpec),
 
             lists:foreach(
@@ -81,19 +82,24 @@ do_run(Experiment) ->
         EntrySpecs
     ).
 
+%% @private Get replicas info.
+%%          Default 1.
+-spec get_replicas_info(maps:map()) -> integer().
+get_replicas_info(EntrySpec) ->
+    maps:get(replicas, EntrySpec, 1).
+
 %% @private Get workflow info.
 %%           - Default start: now
 %%           - Default stop : never
 -spec get_workflow_info(maps:map()) ->
     {now | event(), never | event()}.
 get_workflow_info(EntrySpec) ->
-    Workflow = maps:get(<<"workflow">>, EntrySpec, #{}),
-    {parse_info(maps:get(<<"start">>, Workflow, now)),
-     parse_info(maps:get(<<"stop">>,  Workflow, never))}.
+    Workflow = maps:get(workflow, EntrySpec, #{}),
+    {parse_workflow_info(maps:get(start, Workflow, now)),
+     parse_workflow_info(maps:get(stop,  Workflow, never))}.
 
 %% @private
-parse_info(#{<<"name">> := Name,
-             <<"value">> := Value}) ->
+parse_workflow_info(#{name := Name, value := Value}) ->
     {Name, Value};
-parse_info(A) when is_atom(A) ->
+parse_workflow_info(A) when is_atom(A) ->
     A.

@@ -128,7 +128,7 @@ start_pod(Body, #state{kuberl_cfg=Cfg}) ->
 
 %% @private
 -spec stop_pod(maps:map(), state_t()) -> ok.
-stop_pod(#{<<"metadata">> := #{<<"name">> := PodName}}=_Body,
+stop_pod(#{metadata := #{name := PodName}}=_Body,
          #state{kuberl_cfg=Cfg}) ->
     Body = #{},
     Optional = #{params => #{gracePeriodSeconds => 5},

@@ -39,6 +39,8 @@ start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init([]) ->
+    %% configure
+    configure(),
 
     %% start clients tcp acceptor
     start_client_acceptor(),
@@ -53,11 +55,16 @@ init([]) ->
     {ok, {RestartStrategy, Children}}.
 
 %% @private
+configure() ->
+    %% select random listening client port
+    tricks_config:set(port, random_port()).
+
+%% @private
 start_client_acceptor() ->
     Listener = tricks_client_listener,
     Transport = ranch_tcp,
     %% TODO make this configurable
-    Options = [{port, ?PORT},
+    Options = [{port, tricks_config:get(port)},
                {max_connections, 1024},
                {num_acceptors, 1}],
     ClientHandler = tricks_client_handler,
@@ -67,3 +74,10 @@ start_client_acceptor() ->
                                    Options,
                                    ClientHandler,
                                    []).
+
+%% @private From partisan.
+random_port() ->
+    {ok, Socket} = gen_tcp:listen(0, []),
+    {ok, {_, Port}} = inet:sockname(Socket),
+    ok = gen_tcp:close(Socket),
+    Port.
