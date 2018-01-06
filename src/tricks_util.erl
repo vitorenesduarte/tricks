@@ -33,7 +33,8 @@
          parse_binary/1,
          parse_integer/1,
          parse_event/1,
-         parse_json/1]).
+         parse_json/1,
+         compose_json/1]).
 
 %% @doc Join a list of binaries.
 -spec binary_join(list(binary())) -> binary().
@@ -74,6 +75,11 @@ parse_event({A, B}) ->
 -spec parse_json(binary()) -> maps:map().
 parse_json(A) ->
     jsx:decode(A, [return_maps, {labels, atom}]).
+
+%% @doc Compose JSON.
+-spec compose_json(maps:map()) -> binary().
+compose_json(A) ->
+    jsx:encode(A).
 
 %% @private
 binary_join(_Sep, [E], Bin) ->
