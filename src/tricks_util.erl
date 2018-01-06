@@ -31,6 +31,7 @@
 -export([binary_join/1,
          binary_join/2,
          parse_binary/1,
+         parse_list/1,
          parse_integer/1,
          parse_event/1,
          parse_json/1,
@@ -59,6 +60,13 @@ parse_binary(A) when is_list(A) ->
     list_to_binary(A);
 parse_binary(A) when is_atom(A) ->
     atom_to_binary(A, utf8).
+
+%% @doc Parse a list.
+-spec parse_list(term()) -> list().
+parse_list(A) when is_list(A) ->
+    A;
+parse_list(A) when is_binary(A) ->
+    binary_to_list(A).
 
 %% @doc Parse an integer.
 -spec parse_integer(term()) -> integer().

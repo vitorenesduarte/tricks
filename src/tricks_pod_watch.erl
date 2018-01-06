@@ -43,7 +43,8 @@
 %%      kuberl pod body.
 -spec watch(maps:map(), maps:map()) -> {ok, pid()} | ignore | error().
 watch(Body, Cfg) ->
-    Optional = #{params => #{labelSelector => tricks_exp:label_selector(Body)},
+    Optional = #{params => #{labelSelector
+                             => tricks_exp:label_selector(Body)},
                  cfg => Cfg},
     kuberl_watch:start_link(?MODULE,
                             kuberl_core_v1_api,
@@ -59,30 +60,39 @@ handle_event(error, #{message := Message}, State) ->
     lager:info("Error : ~p~n", [Message]),
     {ok, State};
 handle_event(Type, #{metadata := #{labels := Labels},
-                     status   := #{phase := Phase}}, State0) ->
+                     status   := #{phase := Phase}=Status}, State0) ->
     %% extract exp id and tag pod info
     %% from its labels
     #{expId := ExpId0,
+      podId := PodId0,
       tag   := Tag} = Labels,
     ExpId = tricks_util:parse_integer(ExpId0),
-
-    PodStatus = parse_pod_status(Type, Phase),
-    {Events, State1} = case PodStatus of
-        ?UNKNOWN ->
-            %lager:info("NON EVENT ~p ~p", [Type, Phase]),
-            {[], State0};
-        _ ->
-            get_events(PodStatus, Tag, State0)
+    PodId = tricks_util:parse_integer(PodId0),
+    PodIp = case maps:find(podIP, Status) of
+        {ok, V} ->
+            tricks_util:parse_list(V);
+        error ->
+            undefined
     end,
 
-    %% register all events
-    [tricks_event_manager:register(ExpId, Event) || Event <- Events],
+    %% create pod data
+    Data = {PodId, PodIp},
+
+    PodStatus = parse_pod_status(Type, Phase, PodIp),
+    %% get diff between previous status
+    %% and current status
+    {Diff, State1} = diff(PodStatus, State0),
+
+    %% register events
+    register_events(ExpId, Tag, Diff),
+
+    %% register discovery
+    register_discovery(ExpId, Tag, Data, Diff),
 
     %% if pod is stopped,
-    %% stop watching
+    %% TODO stop watching
     case State1 of
         #state{current=?STOPPED} ->
-            %% TODO stop watch
             %WatchPid = self(),
             %spawn(fun() -> gen_statem:stop(WatchPid) end);
             ok;
@@ -97,41 +107,61 @@ terminate(_Reason, _State) ->
 
 %% @private A pod is stopped if it terminated
 %%          or if it was deleted by us.
-parse_pod_status(_Type, <<"Running">>) ->   ?RUNNING;
-parse_pod_status(_Type, <<"Succeeded">>) -> ?STOPPED;
-parse_pod_status(deleted, _Phase) ->        ?STOPPED;
-parse_pod_status(_, _) ->                   ?UNKNOWN.
+%%          If ip undefined, keep unknown status.
+parse_pod_status(_, _, undefined) ->       ?UNKNOWN;
+parse_pod_status(_, <<"Running">>, _) ->   ?RUNNING;
+parse_pod_status(_, <<"Succeeded">>, _) -> ?STOPPED;
+parse_pod_status(deleted, _, _) ->         ?STOPPED;
+parse_pod_status(_, _, _) ->               ?UNKNOWN.
 
-%% @private Create events given pod status.
-get_events(?RUNNING, Tag, #state{current=Current}=State) ->
+%% @private Get diff of status.
+diff(?RUNNING, #state{current=Current}=State) ->
     %% if running,
     %% and our current is pending,
-    %% return start event
-    Events = case Current of
-        ?PENDING ->
-            [event(start, Tag)];
-        _ ->
-            []
+    %% return start
+    Diff = case Current of
+        ?PENDING -> [start];
+        _ -> []
     end,
-    {Events, State#state{current=?RUNNING}};
+    {Diff, State#state{current=?RUNNING}};
 
-get_events(?STOPPED, Tag, #state{current=Current}=State) ->
-    Events = case Current of
+diff(?STOPPED, #state{current=Current}=State) ->
+    Diff = case Current of
         ?PENDING ->
             %% if succeeded and our current is pending,
-            %% return start and stop events
-            [event(start, Tag), event(stop, Tag)];
+            %% return start and stop
+            [start, stop];
         ?RUNNING ->
             %% if our current is running
-            %% only return stop event
-            [event(stop, Tag)];
+            %% only return stop
+            [stop];
         ?STOPPED ->
             []
     end,
-    {Events, State#state{current=?STOPPED}}.
+    {Diff, State#state{current=?STOPPED}};
 
-%% @private
-event(start, Tag) ->
+diff(?UNKNOWN, State) ->
+    {[], State}.
+
+%% @private Register events given diff.
+register_events(ExpId, Tag, Diff) ->
+    [tricks_event_manager:register(ExpId, event_name(Kind, Tag)) ||
+     Kind <- Diff].
+
+%% @private Compute event name,
+event_name(start, Tag) ->
     tricks_util:binary_join([Tag, <<"_start">>]);
-event(stop, Tag) ->
+event_name(stop, Tag) ->
     tricks_util:binary_join([Tag, <<"_stop">>]).
+
+%% @private Register discovery in case
+%%          single diff
+%%          (i.e. only start, or only stop).
+register_discovery(_ExpId, _Tag, _Data, []) ->
+    ok;
+register_discovery(ExpId, Tag, Data, [start]) ->
+    tricks_discovery_manager:register(ExpId, Tag, Data);
+register_discovery(ExpId, Tag, Data, [stop]) ->
+    tricks_discovery_manager:unregister(ExpId, Tag, Data);
+register_discovery(_ExpId, _Tag, _Data, [start, stop]) ->
+    ok.

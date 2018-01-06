@@ -33,6 +33,8 @@
          event_subscribe/2,
          event_expect/2,
          event_expect/3,
+         discovery_expect/3,
+         discovery_expect/4,
          client_event_register/2,
          client_event_subscribe/2,
          client_event_expect/2,
@@ -75,6 +77,41 @@ event_expect(ExpId, Event0, Wait) ->
     after
         Wait * 1000 ->
             ct:fail("No event")
+    end.
+
+%% @doc Expect a discovery.
+%%      Fail if it does not meet expectations.
+discovery_expect(ExpId, Tag, Ids) ->
+    discovery_expect(ExpId, Tag, Ids, 0).
+
+%% @doc Expect a discovery.
+%%      Fail if it does not meet expectations.
+discovery_expect(ExpId, Tag0, IdsExpected, Seconds) ->
+    Tag = tricks_util:parse_binary(Tag0),
+    {ok, Data} = rpc:call(get(node),
+                          tricks_discovery_manager,
+                          discover,
+                          [ExpId, Tag]),
+
+    %% extract ids from pod data
+    Ids = [Id || {Id, _Ip} <- Data],
+
+    case lists:sort(Ids) == lists:sort(IdsExpected) of
+        true ->
+            ok;
+        false ->
+            case Seconds of
+                0 ->
+                    ct:fail("Wrong discovery [~p] ~p",
+                            [ExpId, Ids]);
+                _ ->
+                    %% wait 1 second and try again
+                    timer:sleep(1000),
+                    discovery_expect(ExpId,
+                                     Tag,
+                                     IdsExpected,
+                                     Seconds - 1)
+            end
     end.
 
 %% @doc Register an event by client.
