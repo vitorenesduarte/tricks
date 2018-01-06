@@ -34,7 +34,8 @@
          parse_integer/1,
          parse_event/1,
          parse_json/1,
-         compose_json/1]).
+         compose_json/1,
+         dict_find/3]).
 
 %% @doc Join a list of binaries.
 -spec binary_join(list(binary())) -> binary().
@@ -80,6 +81,15 @@ parse_json(A) ->
 -spec compose_json(maps:map()) -> binary().
 compose_json(A) ->
     jsx:encode(A).
+
+%% @doc Find a key in a dictionary,
+%%      returning a default in case it's not found.
+-spec dict_find(term(), dict:dict(), term()) -> term().
+dict_find(Key, Dict, Default) ->
+    case dict:find(Key, Dict) of
+        {ok, V} -> V;
+        error -> Default
+    end.
 
 %% @private
 binary_join(_Sep, [E], Bin) ->

@@ -78,11 +78,11 @@ handle_call({subscribe, ExpId, {EventName, Value}=Event , Pid}, _From,
 
     lager:info("Subscription [~p] ~p", [ExpId, Event]),
 
-    D0 = dict_find(ExpId, ETD0, ?EMPTY_EXP_DATA),
+    D0 = tricks_util:dict_find(ExpId, ETD0, ?EMPTY_EXP_DATA),
     #{subs := Subs0,
       events := Events} = D0,
 
-    Current = dict_find(EventName, Events, 0),
+    Current = tricks_util:dict_find(EventName, Events, 0),
     Subs1 = case Current >= Value of
         true ->
             %% event has already happen,
@@ -103,7 +103,7 @@ handle_call({subscribe, ExpId, {EventName, Value}=Event , Pid}, _From,
 handle_cast({register, ExpId, EventName}, #state{exp_to_data=ETD0}=State) ->
     lager:info("Event [~p] ~p", [ExpId, EventName]),
 
-    D0 = dict_find(ExpId, ETD0, ?EMPTY_EXP_DATA),
+    D0 = tricks_util:dict_find(ExpId, ETD0, ?EMPTY_EXP_DATA),
     #{subs := Subs,
       events := Events0} = D0,
 
@@ -131,13 +131,6 @@ handle_cast({register, ExpId, EventName}, #state{exp_to_data=ETD0}=State) ->
              subs => Subs1},
     ETD1 = dict:store(ExpId, D1, ETD0),
     {noreply, State#state{exp_to_data=ETD1}}.
-
-%% @private
-dict_find(Key, Dict, Default) ->
-    case dict:find(Key, Dict) of
-        {ok, V} -> V;
-        error -> Default
-    end.
 
 %% @private
 notify(Pid, ExpId, Event) ->

@@ -45,10 +45,12 @@ init([]) ->
     %% start clients tcp acceptor
     start_client_acceptor(),
 
-    %% start app, scheduler and event manager
+    %% start app, scheduler, event manager,
+    %% discovery manager
     Actors = [?APP,
               tricks_scheduler,
-              tricks_event_manager],
+              tricks_event_manager,
+              tricks_discovery_manager],
     Children = [?CHILD(A) || A <- Actors],
 
     RestartStrategy = {one_for_one, 10, 10},

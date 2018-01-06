@@ -19,7 +19,7 @@ An experiment is one or more TE's.
   - can be used to implement synchronization barrier
     (e.g. make sure all clients start at the same time)
 - [x] Workflow (e.g. only start a given TE once event X counter is Y)
-- [ ] Service discovery
+- [ ] Pod discovery
 - [ ] Log aggregation
 - [ ] Plotting from logs (e.g. latency/throughput, CDF, bar, line)
 - [ ] Detect coordination omission from logs
@@ -126,7 +126,7 @@ and with __[TC]__ if from Tricks to Clients.
 }
 ```
 
-- [ ] Service discovery __[CT]__
+- [ ] Pod discovery __[CT]__
 ```json
 {
   "expId": 123456,
@@ -135,7 +135,7 @@ and with __[TC]__ if from Tricks to Clients.
 }
 ```
 
-- [ ] Service discovery __[TC]__
+- [ ] Pod discovery __[TC]__
 ```json
 {
   "expId": 123456,
