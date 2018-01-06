@@ -10,3 +10,5 @@ assert:
  * default []
  * list of two pairs {"name": x, "value": y}
  * reserved names: TAG, EXP_IP, POD_ID, POD_IP
+
+- DRIVERS CANNOT REGISTER IMPLICIT EVENTS

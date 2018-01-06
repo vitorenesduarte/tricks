@@ -110,16 +110,11 @@ terminate(_Reason, _State) ->
 %%          or if it was deleted by us.
 %%          A pod is running if it's phase
 %%          is running and has an ip.
-parse_pod_status(_, <<"Running">>, PodIp) ->
-    case PodIp of
-        undefined ->
-            ?UNKNOWN;
-        _ ->
-            ?RUNNING
-    end;
-parse_pod_status(_, <<"Succeeded">>, _) -> ?STOPPED;
-parse_pod_status(deleted, _, _) ->         ?STOPPED;
-parse_pod_status(_, _, _) ->               ?UNKNOWN.
+parse_pod_status(_, <<"Running">>, undefined) -> ?UNKNOWN;
+parse_pod_status(_, <<"Running">>, _) ->         ?RUNNING;
+parse_pod_status(_, <<"Succeeded">>, _) ->       ?STOPPED;
+parse_pod_status(deleted, _, _) ->               ?STOPPED;
+parse_pod_status(_, _, _) ->                     ?UNKNOWN.
 
 %% @private Get diff of status.
 diff(?RUNNING, #state{current=Current}=State) ->
