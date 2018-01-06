@@ -14,11 +14,11 @@ An experiment is one or more TE's.
 
 ### Features
 - [x] Register occurrence of events. Each event has a counter associated.
-- [x] Workflow (e.g. only start a given TE once event X counter is Y)
 - [x] Implicit events (`start` and `stop` of each pod in a TE)
 - [x] Subscribe to events
   - can be used to implement synchronization barrier
     (e.g. make sure all clients start at the same time)
+- [x] Workflow (e.g. only start a given TE once event X counter is Y)
 - [ ] Service discovery
 - [ ] Log aggregation
 - [ ] Plotting from logs (e.g. latency/throughput, CDF, bar, line)
@@ -112,7 +112,7 @@ and with __[TC]__ if from Tricks to Clients.
   "expId": 123456,
   "type": "subscription",
   "eventName": "connected",
-  "value"": 10
+  "value": 10
 }
 ```
 
@@ -122,7 +122,7 @@ and with __[TC]__ if from Tricks to Clients.
   "expId": 123456,
   "type": "notification",
   "eventName": "connected",
-  "value"": 10
+  "value": 10
 }
 ```
 
