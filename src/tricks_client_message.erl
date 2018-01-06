@@ -25,16 +25,78 @@
 
 -include("tricks.hrl").
 
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+-endif.
+
 %% API
 -export([decode/1,
-         encode_notification/2]).
+         encode/2]).
+
+-type message() :: {event, event_name()}
+                 | {subscription, event()}
+                 | {notification, event()}.
 
 %% @doc Decode message.
 -spec decode(binary()) -> maps:map().
 decode(Bin) ->
     tricks_util:parse_json(Bin).
 
-%% @doc Encode notification.
--spec encode_notification(exp_id(), event()) -> binary().
-encode_notification(_ExpId, _Event) ->
-    <<>>.
+%% @doc Encode message.
+-spec encode(exp_id(), message()) -> binary().
+encode(ExpId, {Type, _}=Message) ->
+    Base = #{expId => ExpId,
+             type => Type},
+    Payload = encode_payload(Message),
+    Map = maps:merge(Base, Payload),
+
+    tricks_util:compose_json(Map).
+
+%% @private
+-spec encode_payload(message()) -> maps:map().
+encode_payload({event, EventName}) ->
+    #{eventName => EventName};
+encode_payload({_, {EventName, Value}}) ->
+    #{eventName => EventName,
+      value => Value}.
+
+%% ===================================================================
+%% EUnit tests
+%% ===================================================================
+
+-ifdef(TEST).
+
+event_test() ->
+    ExpId = 17,
+    EventName = <<"server_stop">>,
+
+    Expected = #{expId => ExpId,
+                 type => <<"event">>,
+                 eventName => EventName},
+    ?assertEqual(Expected, decode(encode(ExpId, {event, EventName}))).
+
+subscription_test() ->
+    ExpId = 17,
+    EventName = <<"server_stop">>,
+    Value = 5,
+    Event = {EventName, Value},
+
+    Expected = #{expId => ExpId,
+                 type => <<"subscription">>,
+                 eventName => EventName,
+                 value => Value},
+    ?assertEqual(Expected, decode(encode(ExpId, {subscription, Event}))).
+
+notification_test() ->
+    ExpId = 17,
+    EventName = <<"server_stop">>,
+    Value = 5,
+    Event = {EventName, Value},
+
+    Expected = #{expId => ExpId,
+                 type => <<"notification">>,
+                 eventName => EventName,
+                 value => Value},
+    ?assertEqual(Expected, decode(encode(ExpId, {notification, Event}))).
+
+-endif.
