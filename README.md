@@ -1,7 +1,13 @@
 [![Build Status](https://img.shields.io/travis/vitorenesduarte/tricks/master.svg)](https://travis-ci.org/vitorenesduarte/tricks)
 [![Coverage Status](https://img.shields.io/coveralls/github/vitorenesduarte/tricks/master.svg?maxAge=60)](https://coveralls.io/github/vitorenesduarte/tricks?branch=master)
 
+
+
 # Tricks 
+
+__Running an experiment should be as easy as describing it in an YAML file.__
+
+----------
 
 A Tricks entry (TE) is a set of replicas/pods.
 An experiment is one or more TE's.
@@ -88,9 +94,10 @@ has the same id)
 
 # Drivers API
 
-## From Clients to Tricks
+Methods will be tagged with __[CT]__ if it's a method from Clients to Tricks,
+and with __[TC]__ if from Tricks to Clients.
 
-#### Register events
+- [x] Register events __[CT]__
 ```json
 {
   "expId": 123456,
@@ -99,7 +106,7 @@ has the same id)
 }
 ```
 
-#### Subscription of events
+- [x] Subscription of events __[CT]__
 ```json
 {
   "expId": 123456,
@@ -109,13 +116,44 @@ has the same id)
 }
 ```
 
-## From Tricks to Clients
-#### Notification of events
+- [x] Notification of events __[TC]__
 ```json
 {
   "expId": 123456,
   "type": "notification",
   "eventName": "connected",
   "value"": 10
+}
+```
+
+- [ ] Service discovery __[CT]__
+```json
+{
+  "expId": 123456,
+  "type": "discovery",
+  "tag": "server"
+}
+```
+
+- [ ] Service discovery __[TC]__
+```json
+{
+  "expId": 123456,
+  "type": "discovery",
+  "tag": "server",
+  "pods": [
+    {
+      "id": 1,
+      "ip": "10.12.13.15"
+    },
+    {
+      "id": 2,
+      "ip": "10.12.13.16"
+    },
+    {
+      "id": 3,
+      "ip": "10.12.13.17"
+    }
+  ]
 }
 ```
