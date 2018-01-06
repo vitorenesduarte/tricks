@@ -26,12 +26,20 @@
 -include("tricks.hrl").
 
 %% API
--export([configure/1,
+-export([connect/2,
+         configure/1,
          activate/1,
          send/2,
          recv/1]).
 
 -type socket() :: inet:socket().
+-type ip() :: inet:ip_address().
+
+%% @doc Connect to a server on TCP port `Port'
+%%      on the host with IP address `Ip`.
+-spec connect(ip(), integer()) -> {ok, socket()} | error().
+connect(Ip, Port) ->
+    ranch_tcp:connect(Ip, Port, []).
 
 %% @doc Set `?TCP_OPTIONS' on `Socket'.
 -spec configure(socket()) -> ok.
