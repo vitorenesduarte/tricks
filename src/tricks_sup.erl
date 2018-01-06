@@ -28,7 +28,7 @@
 %% API
 -export([start_link/0]).
 
-%% supervisor trickslbacks
+%% supervisor callbacks
 -export([init/1]).
 
 -define(CHILD(I, Type, Timeout),

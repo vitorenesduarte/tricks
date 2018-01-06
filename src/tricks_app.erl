@@ -23,7 +23,7 @@
 
 -behaviour(application).
 
-%% application trickslbacks
+%% application callbacks
 -export([start/2,
          stop/1]).
 

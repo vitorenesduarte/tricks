@@ -29,7 +29,7 @@
 -export([start_link/0,
          run/1]).
 
-%% gen_server trickslbacks
+%% gen_server callbacks
 -export([init/1,
          handle_call/3,
          handle_cast/2]).

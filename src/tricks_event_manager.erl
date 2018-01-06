@@ -30,7 +30,7 @@
          register/2,
          subscribe/3]).
 
-%% gen_server trickslbacks
+%% gen_server callbacks
 -export([init/1,
          handle_call/3,
          handle_cast/2]).

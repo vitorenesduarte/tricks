@@ -23,7 +23,7 @@
 
 -include("tricks.hrl").
 
-%% common_test trickslbacks
+%% common_test callbacks
 -export([suite/0,
          init_per_suite/1,
          end_per_suite/1,
