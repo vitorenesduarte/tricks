@@ -63,8 +63,6 @@ parse_binary(A) when is_atom(A) ->
 
 %% @doc Parse a list.
 -spec parse_list(term()) -> list().
-parse_list(A) when is_list(A) ->
-    A;
 parse_list(A) when is_binary(A) ->
     binary_to_list(A).
 

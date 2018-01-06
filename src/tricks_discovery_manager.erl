@@ -38,7 +38,7 @@
 
 -type tag() :: binary().
 -type pod_id() :: integer().
--type pod_ip() :: string().
+-type pod_ip() :: list().
 -type pod_data() :: {pod_id(), pod_ip()}.
 -type exp_data() :: #{pods => dict:dict(tag(), [pod_data()])}.
 -define(EMPTY_EXP_DATA,
@@ -53,14 +53,16 @@ start_link() ->
 
 %% @doc Register pod.
 -spec register(exp_id(), tag(), pod_data()) -> ok | error().
-register(ExpId, Tag, Data)
-  when is_integer(ExpId), is_binary(Tag) ->
+register(ExpId, Tag, {Id, Ip}=Data)
+  when is_integer(ExpId), is_binary(Tag),
+       is_integer(Id), is_list(Ip) ->
     gen_server:cast(?MODULE, {register, ExpId, Tag, Data}).
 
 %% @doc Unregister pod.
 -spec unregister(exp_id(), tag(), pod_data()) -> ok | error().
-unregister(ExpId, Tag, Data)
-  when is_integer(ExpId), is_binary(Tag) ->
+unregister(ExpId, Tag, {Id, Ip}=Data)
+  when is_integer(ExpId), is_binary(Tag),
+       is_integer(Id), is_list(Ip) ->
     gen_server:cast(?MODULE, {unregister, ExpId, Tag, Data}).
 
 %% @doc Find pods in a given experiment,

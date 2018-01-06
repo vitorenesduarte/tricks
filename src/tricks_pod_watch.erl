@@ -36,7 +36,11 @@
 -define(STOPPED, 2).
 -define(UNKNOWN, 3).
 
--record(state, {current :: ?PENDING | ?RUNNING | ?STOPPED}).
+-type pod_id() :: integer().
+-type pod_ip() :: list().
+
+-record(state, {current :: ?PENDING | ?RUNNING | ?STOPPED,
+                pod_data :: {pod_id(), pod_ip()} | undefined}).
 
 %% @doc Watch changes on pod.
 %%      It takes as an argument
@@ -54,7 +58,8 @@ watch(Body, Cfg) ->
                             []).
 
 init([]) ->
-    {ok, #state{current=?PENDING}}.
+    {ok, #state{current=?PENDING,
+                pod_data=undefined}}.
 
 handle_event(error, #{message := Message}, State) ->
     lager:info("Error : ~p~n", [Message]),
@@ -79,7 +84,7 @@ handle_event(Type, #{metadata := #{labels := Labels},
     %% create pod data
     Data = {PodId, PodIp},
 
-    PodStatus = parse_pod_status(Type, Phase, PodIp),
+    PodStatus = parse_pod_status(Type, Phase),
     %% get diff between previous status
     %% and current status
     {Diff, State1} = diff(PodStatus, State0),
@@ -88,11 +93,11 @@ handle_event(Type, #{metadata := #{labels := Labels},
     register_events(ExpId, Tag, Diff),
 
     %% register discovery
-    register_discovery(ExpId, Tag, Data, Diff),
+    State2 = register_discovery(ExpId, Tag, Data, Diff, State1),
 
     %% if pod is stopped,
     %% TODO stop watching
-    case State1 of
+    case State2 of
         #state{current=?STOPPED} ->
             %WatchPid = self(),
             %spawn(fun() -> gen_statem:stop(WatchPid) end);
@@ -101,20 +106,17 @@ handle_event(Type, #{metadata := #{labels := Labels},
             ok
     end,
 
-    {ok, State1}.
+    {ok, State2}.
 
 terminate(_Reason, _State) ->
     ok.
 
 %% @private A pod is stopped if it terminated
 %%          or if it was deleted by us.
-%%          A pod is running if it's phase
-%%          is running and has an ip.
-parse_pod_status(_, <<"Running">>, undefined) -> ?UNKNOWN;
-parse_pod_status(_, <<"Running">>, _) ->         ?RUNNING;
-parse_pod_status(_, <<"Succeeded">>, _) ->       ?STOPPED;
-parse_pod_status(deleted, _, _) ->               ?STOPPED;
-parse_pod_status(_, _, _) ->                     ?UNKNOWN.
+parse_pod_status(_, <<"Running">>) ->   ?RUNNING;
+parse_pod_status(_, <<"Succeeded">>) -> ?STOPPED;
+parse_pod_status(deleted, _) ->         ?STOPPED;
+parse_pod_status(_, _) ->               ?UNKNOWN.
 
 %% @private Get diff of status.
 diff(?RUNNING, #state{current=Current}=State) ->
@@ -159,11 +161,15 @@ event_name(stop, Tag) ->
 %% @private Register discovery in case
 %%          single diff
 %%          (i.e. only start, or only stop).
-register_discovery(_ExpId, _Tag, _Data, []) ->
-    ok;
-register_discovery(ExpId, Tag, Data, [start]) ->
-    tricks_discovery_manager:register(ExpId, Tag, Data);
-register_discovery(ExpId, Tag, Data, [stop]) ->
-    tricks_discovery_manager:unregister(ExpId, Tag, Data);
-register_discovery(_ExpId, _Tag, _Data, [start, stop]) ->
-    ok.
+register_discovery(_, _, _, [], State) ->
+    State;
+register_discovery(ExpId, Tag, Data, [start], State) ->
+    tricks_discovery_manager:register(ExpId, Tag, Data),
+    %% store pod data to be used when unregistering
+    State#state{pod_data=Data};
+register_discovery(ExpId, Tag, _, [stop], #state{pod_data=Data}=State) ->
+    %% use stored pod data for unregistering
+    tricks_discovery_manager:unregister(ExpId, Tag, Data),
+    State;
+register_discovery(_, _, _, [start, stop], State) ->
+    State.
