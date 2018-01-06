@@ -68,6 +68,7 @@ handle_event(Type, #{metadata := #{labels := Labels},
       tag   := Tag} = Labels,
     ExpId = tricks_util:parse_integer(ExpId0),
     PodId = tricks_util:parse_integer(PodId0),
+
     PodIp = case maps:find(podIP, Status) of
         {ok, V} ->
             tricks_util:parse_list(V);
@@ -107,9 +108,15 @@ terminate(_Reason, _State) ->
 
 %% @private A pod is stopped if it terminated
 %%          or if it was deleted by us.
-%%          If ip undefined, keep unknown status.
-parse_pod_status(_, _, undefined) ->       ?UNKNOWN;
-parse_pod_status(_, <<"Running">>, _) ->   ?RUNNING;
+%%          A pod is running if it's phase
+%%          is running and has an ip.
+parse_pod_status(_, <<"Running">>, PodIp) ->
+    case PodIp of
+        undefined ->
+            ?UNKNOWN;
+        _ ->
+            ?RUNNING
+    end;
 parse_pod_status(_, <<"Succeeded">>, _) -> ?STOPPED;
 parse_pod_status(deleted, _, _) ->         ?STOPPED;
 parse_pod_status(_, _, _) ->               ?UNKNOWN.
