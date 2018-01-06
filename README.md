@@ -10,6 +10,17 @@ An experiment is one or more TE's.
 - Register occurrence of events. Each event has a counter associated.
 - Workflow (e.g. only start a given TE once event X counter is Y)
 - Implicit events (`start` and `stop` of each pod in a TE)
+- Subscribe to events
+  - can be used to implement synchronization barrier
+    (e.g. make sure all clients start at the same time)
+
+### Planned Features
+- Service discovery
+- Log aggregation
+- Plotting from logs (e.g. latency/throughput, CDF, bar, line)
+- Detect coordination omission from logs
+- Federation support (run across multiple Kubernetes clusters)
+- Spot instances support (if an instance is killed, the experiment is restarted)
 
 ### Example
 
