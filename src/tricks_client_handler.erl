@@ -71,7 +71,7 @@ handle_info({tcp_closed, Socket}, State) ->
     {stop, normal, State};
 
 handle_info({notification, ExpId, Event}, #state{socket=Socket}=State) ->
-    Message = tricks_client_message:encode_notification(ExpId, Event),
+    Message = tricks_client_message:encode(ExpId, {notification, Event}),
     tricks_client_socket:send(Socket, Message),
     {noreply, State}.
 
