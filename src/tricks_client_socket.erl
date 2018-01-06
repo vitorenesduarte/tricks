@@ -27,6 +27,7 @@
 
 %% API
 -export([connect/2,
+         disconnect/1,
          configure/1,
          activate/1,
          send/2,
@@ -40,6 +41,11 @@
 -spec connect(ip(), integer()) -> {ok, socket()} | error().
 connect(Ip, Port) ->
     ranch_tcp:connect(Ip, Port, []).
+
+%% @doc Close a socket.
+-spec disconnect(socket()) -> ok.
+disconnect(Socket) ->
+    ranch_tcp:close(Socket).
 
 %% @doc Set `?TCP_OPTIONS' on `Socket'.
 -spec configure(socket()) -> ok.

@@ -63,12 +63,11 @@ all() ->
 event_test(_Config) ->
     %% start
     ok = test_util:start(),
-    Receiver = self(),
 
     %% check experiments ids are used properly
-    test_util:event_subscribe(1, {event, 1}, Receiver),
-    test_util:event_subscribe(1, {event, 2}, Receiver),
-    test_util:event_subscribe(2, {event, 1}, Receiver),
+    test_util:event_subscribe(1, {event, 1}),
+    test_util:event_subscribe(1, {event, 2}),
+    test_util:event_subscribe(2, {event, 1}),
 
     test_util:event_register(1, event),
     test_util:event_expect(1, {event, 1}),
@@ -81,8 +80,8 @@ event_test(_Config) ->
 
     %% subscription to an event that has already
     %% ocurred should also be notified
-    test_util:event_subscribe(1, {event, 2}, Receiver),
-    test_util:event_subscribe(1, {event, 1}, Receiver),
+    test_util:event_subscribe(1, {event, 2}),
+    test_util:event_subscribe(1, {event, 1}),
 
     test_util:event_expect(1, {event, 2}),
     test_util:event_expect(1, {event, 1}),

@@ -18,7 +18,7 @@
 %%
 %% -------------------------------------------------------------------
 
--module(tricks_SUITE).
+-module(tricks_client_SUITE).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
 -include("tricks.hrl").
@@ -54,38 +54,59 @@ end_per_testcase(Case, Config) ->
     Config.
 
 all() ->
-    [hello_world_test,
-     implicit_events_test].
+    [register_event_test,
+     subscribe_event_test].
 
 %% ===================================================================
 %% tests
 %% ===================================================================
 
-hello_world_test(_Config) ->
+register_event_test(_Config) ->
     %% start
     ok = test_util:start(),
 
-    ExpId = test_util:example_run("hello-world"),
-    test_util:event_subscribe(ExpId, {"hello-world_start", 1}),
-    test_util:event_subscribe(ExpId, {"hello-world_stop", 1}),
+    %% connect to tricks
+    ok = test_util:client_connect(),
 
-    %% wait for start
-    test_util:event_expect(ExpId, {"hello-world_start", 1}, 20),
-    %% wait for stop
-    test_util:event_expect(ExpId, {"hello-world_stop", 1}, 60),
+    %% subscribe to an event
+    test_util:event_subscribe(17, {event, 1}),
+    test_util:event_subscribe(17, {event, 2}),
+
+    %% register an event using the client
+    test_util:client_event_register(17, event),
+    test_util:event_expect(17, {event, 1}),
     
+    %% register another event
+    test_util:client_event_register(17, event),
+    test_util:event_expect(17, {event, 2}),
+
+    %% disconnect
+    ok = test_util:client_disconnect(),
+
     %% stop
     ok = test_util:stop().
 
-implicit_events_test(_Config) ->
+subscribe_event_test(_Config) ->
     %% start
     ok = test_util:start(),
 
-    ExpId = test_util:example_run("implicit-events"),
-    test_util:event_subscribe(ExpId, {"server2_stop", 5}),
+    %% connect to tricks
+    ok = test_util:client_connect(),
 
-    %% wait for end of 5 server2
-    test_util:event_expect(ExpId, {"server2_stop", 5}, 300),
+    %% subscribe to an event using the client
+    test_util:client_event_subscribe(17, {event, 1}),
+    test_util:client_event_subscribe(17, {event, 2}),
+
+    %% register an event
+    test_util:event_register(17, event),
+    test_util:client_event_expect(17, {event, 1}),
+    
+    %% register another event
+    test_util:event_register(17, event),
+    test_util:client_event_expect(17, {event, 2}),
+
+    %% disconnect
+    ok = test_util:client_disconnect(),
 
     %% stop
     ok = test_util:stop().

@@ -26,14 +26,110 @@
 -include_lib("common_test/include/ct.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
+-define(LOCALHOST, {127, 0, 0, 1}).
+
 %% API
--export([start/0,
-         stop/0,
-         event_subscribe/3,
-         event_register/2,
+-export([event_register/2,
+         event_subscribe/2,
          event_expect/2,
          event_expect/3,
-         example_run/1]).
+         client_event_register/2,
+         client_event_subscribe/2,
+         client_event_expect/2,
+         client_connect/0,
+         client_disconnect/0,
+         example_run/1,
+         start/0,
+         stop/0]).
+
+%% @doc Register an event.
+event_register(ExpId, EventName0) ->
+    EventName = tricks_util:parse_binary(EventName0),
+    ok = rpc:call(get(node),
+                  tricks_event_manager,
+                  register,
+                  [ExpId, EventName]).
+
+%% @doc Subscribe to an event.
+event_subscribe(ExpId, Event0) ->
+    Event = tricks_util:parse_event(Event0),
+    ok = rpc:call(get(node),
+                  tricks_event_manager,
+                  subscribe,
+                  [ExpId, Event, self()]).
+
+%% @doc Expect an event.
+%%      Fail if it does not meet expectations after 1 second.
+event_expect(ExpId, Event) ->
+    event_expect(ExpId, Event, 1).
+
+%% @doc Expect an event.
+%%      Fail if it does not meet expectations after `Wait' seconds.
+event_expect(ExpId, Event0, Wait) ->
+    Event = tricks_util:parse_event(Event0),
+    receive
+        {notification, ExpId, Event} ->
+            ok;
+        {notification, A, B} ->
+            ct:fail("Wrong event [~p] ~p", [A, B])
+    after
+        Wait * 1000 ->
+            ct:fail("No event")
+    end.
+
+%% @doc Register an event by client.
+client_event_register(ExpId, EventName0) ->
+    EventName = tricks_util:parse_binary(EventName0),
+    Message = tricks_client_message:encode(ExpId, {event, EventName}),
+    ok = tricks_client_socket:send(get(socket), Message).
+
+%% @doc Subscribe to an event by client.
+client_event_subscribe(ExpId, Event0) ->
+    Event = tricks_util:parse_event(Event0),
+    Message = tricks_client_message:encode(ExpId, {subscription, Event}),
+    ok = tricks_client_socket:send(get(socket), Message).
+
+%% @doc Expect an event by client.
+%%      Fail if it does not meet expectations.
+client_event_expect(ExpId, Event0) ->
+    Event = tricks_util:parse_event(Event0),
+    {ok, Bin} = tricks_client_socket:recv(get(socket)),
+
+    #{expId := MExpId,
+      type := <<"notification">>,
+      eventName := MEventName,
+      value := MValue} = tricks_client_message:decode(Bin),
+    MEvent = {MEventName, MValue},
+
+    case {MExpId, MEvent} of
+        {ExpId, Event} ->
+            ok;
+        _ ->
+            ct:fail("Wrong event [~p] ~p", [MExpId, MEvent])
+    end.
+
+%% @doc Connect to tricks.
+client_connect() ->
+    Port = rpc:call(get(node),
+                    tricks_config,
+                    get,
+                    [port]),
+    {ok, Socket} = tricks_client_socket:connect(?LOCALHOST, Port),
+    ok = tricks_client_socket:configure(Socket),
+    put(socket, Socket),
+    ok.
+
+%% @doc Disconnect from tricks.
+client_disconnect() ->
+    ok = tricks_client_socket:disconnect(get(socket)).
+
+%% @doc Run an example.
+example_run(Name) ->
+    {ok, ExpId} = rpc:call(get(node),
+                           tricks_example,
+                           run,
+                           [home_dir(), Name]),
+    ExpId.
 
 %% @doc Start app.
 start() ->
@@ -80,49 +176,6 @@ stop() ->
         Error ->
             ct:fail(Error)
     end.
-
-%% @doc Subscribe to an event.
-event_subscribe(ExpId, Event0, Pid) ->
-    Event = tricks_util:parse_event(Event0),
-    ok = rpc:call(get(node),
-                  tricks_event_manager,
-                  subscribe,
-                  [ExpId, Event, Pid]).
-
-%% @doc Register an event.
-event_register(ExpId, EventName0) ->
-    EventName = tricks_util:parse_binary(EventName0),
-    ok = rpc:call(get(node),
-                  tricks_event_manager,
-                  register,
-                  [ExpId, EventName]).
-
-%% @doc Expect an event.
-%%      Fail if it does not meet expectations after 1s.
-event_expect(ExpId, Event) ->
-    event_expect(ExpId, Event, 1).
-
-%% @doc Expect an event.
-%%      Fail if it does not meet expectations after `Wait`s.
-event_expect(ExpId, Event0, Wait) ->
-    Event = tricks_util:parse_event(Event0),
-    receive
-        {notification, ExpId, Event} ->
-            ok;
-        {notification, A, B} ->
-            ct:fail("Wrong event [~p] ~p", [A, B])
-    after
-        Wait * 1000 ->
-            ct:fail("No event")
-    end.
-
-%% @doc Run an example.
-example_run(Name) ->
-    {ok, ExpId} = rpc:call(get(node),
-                           tricks_example,
-                           run,
-                           [home_dir(), Name]),
-    ExpId.
 
 %% @private Start erlang distribution.
 start_erlang_distribution() ->

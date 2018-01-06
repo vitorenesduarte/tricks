@@ -79,8 +79,20 @@ handle_info({notification, ExpId, Event}, #state{socket=Socket}=State) ->
 do_receive(Bin, Socket) ->
     %% decode message
     Message = tricks_client_message:decode(Bin),
+    #{expId := ExpId,
+      type := Type,
+      eventName := EventName} = Message,
 
-    lager:info("MESSAGE ~p", [Message]),
+    case Type of
+        <<"event">> ->
+            %% register the event
+            tricks_event_manager:register(ExpId, EventName);
+        <<"subscription">> ->
+            %% subscribe event
+            #{value := Value} = Message,
+            Event = {EventName, Value},
+            tricks_event_manager:subscribe(ExpId, Event, self())
+    end,
 
     %% reactivate socket
     ok = tricks_client_socket:activate(Socket).
