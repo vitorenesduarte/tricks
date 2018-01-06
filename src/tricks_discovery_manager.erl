@@ -86,6 +86,7 @@ handle_call({discover, ExpId, Tag}, _From,
 
 handle_cast({register, ExpId, Tag, Data},
             #state{exp_to_data=ETD0}=State) ->
+    lager:info("Register pod [~p] ~p ~p", [ExpId, Tag, Data]),
 
     D0 = tricks_util:dict_find(ExpId, ETD0, ?EMPTY_EXP_DATA),
     #{pods := Pods0} = D0,
@@ -100,6 +101,7 @@ handle_cast({register, ExpId, Tag, Data},
 
 handle_cast({unregister, ExpId, Tag, Data},
             #state{exp_to_data=ETD0}=State) ->
+    lager:info("Unregister pod [~p] ~p ~p", [ExpId, Tag, Data]),
 
     D0 = tricks_util:dict_find(ExpId, ETD0, ?EMPTY_EXP_DATA),
     #{pods := Pods0} = D0,

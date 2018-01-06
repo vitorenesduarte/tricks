@@ -77,7 +77,7 @@ discover_test(_Config) ->
 
     %% start the server
     test_util:event_register(ExpId, start_server),
-    test_util:discovery_expect(ExpId, server, [1], 20),
+    test_util:discovery_expect(ExpId, server, [1], 60),
     test_util:discovery_expect(ExpId, client, []),
 
     %% stop the server
@@ -85,10 +85,10 @@ discover_test(_Config) ->
 
     %% start clients
     test_util:event_register(ExpId, start_clients),
-    test_util:discovery_expect(ExpId, client, [1, 2, 3], 20),
+    test_util:discovery_expect(ExpId, client, [1, 2, 3], 60),
     
     %% server should stop soon
-    test_util:discovery_expect(ExpId, server, [], 30),
+    test_util:discovery_expect(ExpId, server, [], 60),
 
     %% stop
     ok = test_util:stop().

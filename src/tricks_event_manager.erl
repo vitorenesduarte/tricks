@@ -75,7 +75,6 @@ init([]) ->
 
 handle_call({subscribe, ExpId, {EventName, Value}=Event , Pid}, _From,
             #state{exp_to_data=ETD0}=State) ->
-
     lager:info("Subscription [~p] ~p", [ExpId, Event]),
 
     D0 = tricks_util:dict_find(ExpId, ETD0, ?EMPTY_EXP_DATA),

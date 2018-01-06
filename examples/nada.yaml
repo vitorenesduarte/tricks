@@ -19,7 +19,7 @@ experiment:
   - name: TYPE
     value: client
   - name: OPS
-    value: 10000
+    value: 1000000
   workflow:
     start:
       name: start_clients
