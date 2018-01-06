@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/vitorenesduarte/tricks.svg?branch=master)](https://travis-ci.org/vitorenesduarte/tricks)
-[![Coverage Status](https://coveralls.io/repos/github/vitorenesduarte/tricks/badge.svg?branch=master)](https://coveralls.io/github/vitorenesduarte/tricks?branch=master)
+[![Build Status](https://img.shields.io/travis/vitorenesduarte/tricks/master.svg)](https://travis-ci.org/vitorenesduarte/tricks)
+[![Coverage Status](https://img.shields.io/coveralls/github/vitorenesduarte/tricks/master.svg?maxAge=60)](https://coveralls.io/github/vitorenesduarte/tricks?branch=master)
 
 # tricks 
 
