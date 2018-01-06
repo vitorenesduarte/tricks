@@ -66,29 +66,26 @@ discover_test(_Config) ->
 
     %% start nada
     %% this experiment will
-    %% - start 1 server  when we register event start_server
-    %% - stop  1 server  when we register event stop_server
-    %% - start 3 clients when we register event start_clients
+    %% - start 1 app1 when we register event go1
+    %% - start 3 app2 when we register event go2
+    %% - stop  1 app1 when 3 app2 are started
     ExpId = test_util:example_run("nada"),
 
     %% in the beginning there's nothing
-    test_util:discovery_expect(ExpId, server, []),
-    test_util:discovery_expect(ExpId, client, []),
+    test_util:discovery_expect(ExpId, app1, []),
+    test_util:discovery_expect(ExpId, app2, []),
 
-    %% start the server
-    test_util:event_register(ExpId, start_server),
-    test_util:discovery_expect(ExpId, server, [1], 60),
-    test_util:discovery_expect(ExpId, client, []),
+    %% start app1
+    test_util:event_register(ExpId, go1),
+    test_util:discovery_expect(ExpId, app1, [1], 60),
+    test_util:discovery_expect(ExpId, app2, []),
 
-    %% stop the server
-    test_util:event_register(ExpId, stop_server),
-
-    %% start clients
-    test_util:event_register(ExpId, start_clients),
-    test_util:discovery_expect(ExpId, client, [1, 2, 3], 60),
+    %% start app2
+    test_util:event_register(ExpId, go2),
+    test_util:discovery_expect(ExpId, app2, [1, 2, 3], 60),
     
-    %% server should stop soon
-    test_util:discovery_expect(ExpId, server, [], 60),
+    %% app1 should stop soon
+    test_util:discovery_expect(ExpId, app1, [], 120),
 
     %% stop
     ok = test_util:stop().
