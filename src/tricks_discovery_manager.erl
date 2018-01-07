@@ -36,10 +36,6 @@
          handle_call/3,
          handle_cast/2]).
 
--type tag() :: binary().
--type pod_id() :: integer().
--type pod_ip() :: list().
--type pod_data() :: {pod_id(), pod_ip()}.
 -type exp_data() :: #{pods => dict:dict(tag(),
                                         sets:set(pod_data()))}.
 

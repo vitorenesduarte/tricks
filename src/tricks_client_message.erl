@@ -35,7 +35,9 @@
 
 -type message() :: {event, event_name()}
                  | {subscription, event()}
-                 | {notification, event()}.
+                 | {notification, event()}
+                 | {discovery, tag()}
+                 | {pods, {tag(), [pod_data()]}}.
 
 %% @doc Decode message.
 -spec decode(binary()) -> maps:map().
@@ -56,9 +58,18 @@ encode(ExpId, {Type, _}=Message) ->
 -spec encode_payload(message()) -> maps:map().
 encode_payload({event, EventName}) ->
     #{eventName => EventName};
-encode_payload({_, {EventName, Value}}) ->
+encode_payload({subscription, {EventName, Value}}) ->
     #{eventName => EventName,
-      value => Value}.
+      value => Value};
+encode_payload({notification, {EventName, Value}}) ->
+    #{eventName => EventName,
+      value => Value};
+encode_payload({discovery, Tag}) ->
+    #{tag => Tag};
+encode_payload({pods, {Tag, PodsData}}) ->
+    #{tag => Tag,
+      pods => [#{id => Id,
+                 ip => Ip} || {Id, Ip} <- PodsData]}.
 
 %% ===================================================================
 %% EUnit tests
@@ -98,5 +109,30 @@ notification_test() ->
                  eventName => EventName,
                  value => Value},
     ?assertEqual(Expected, decode(encode(ExpId, {notification, Event}))).
+
+discovery_test() ->
+    ExpId = 17,
+    Tag = <<"server">>,
+    Expected = #{expId => ExpId,
+                 type => <<"discovery">>,
+                 tag => Tag},
+    ?assertEqual(Expected, decode(encode(ExpId, {discovery, Tag}))).
+
+pods_test() ->
+    ExpId = 17,
+    Tag = <<"server">>,
+    PodId1 = 1,
+    PodIp1 = "127.0.0.1",
+    PodId2 = 2,
+    PodIp2 = "127.0.0.2",
+    PodsData = [{PodId1, PodIp1},
+                {PodId2, PodIp2}],
+
+    Expected = #{expId => ExpId,
+                 type => <<"pods">>,
+                 tag => Tag,
+                 pods => [#{id => PodId1, ip => PodIp1},
+                          #{id => PodId2, ip => PodIp2}]},
+    ?assertEqual(Expected, decode(encode(ExpId, {pods, {Tag, PodsData}}))).
 
 -endif.

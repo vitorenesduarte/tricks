@@ -36,11 +36,8 @@
 -define(STOPPED, 2).
 -define(UNKNOWN, 3).
 
--type pod_id() :: integer().
--type pod_ip() :: list().
-
 -record(state, {current :: ?PENDING | ?RUNNING | ?STOPPED,
-                pod_data :: {pod_id(), pod_ip()} | undefined}).
+                pod_data :: pod_data() | undefined}).
 
 %% @doc Watch changes on pod.
 %%      It takes as an argument

@@ -14,6 +14,12 @@
 -type event_name() :: binary().
 -type event() :: {event_name(), integer()}.
 
+%% pod
+-type tag() :: binary().
+-type pod_id() :: integer().
+-type pod_ip() :: list().
+-type pod_data() :: {pod_id(), pod_ip()}.
+
 %% client listener
 -define(PORT, 8817).
 -define(TCP_ACTIVE_OPTION, {active, once}).

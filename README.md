@@ -139,7 +139,7 @@ and with __[TC]__ if from Tricks to Clients.
 ```json
 {
   "expId": 123456,
-  "type": "discovery",
+  "type": "pods",
   "tag": "server",
   "pods": [
     {
