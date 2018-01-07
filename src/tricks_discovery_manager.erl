@@ -40,9 +40,11 @@
 -type pod_id() :: integer().
 -type pod_ip() :: list().
 -type pod_data() :: {pod_id(), pod_ip()}.
--type exp_data() :: #{pods => dict:dict(tag(), [pod_data()])}.
--define(EMPTY_EXP_DATA,
-        #{pods => dict:new()}).
+-type exp_data() :: #{pods => dict:dict(tag(),
+                                        sets:set(pod_data()))}.
+
+-define(EMPTY_POD_DATA, sets:new()).
+-define(EMPTY_EXP_DATA, #{pods => dict:new()}).
 
 -record(state, {exp_to_data :: dict:dict(exp_id(), exp_data())}).
 
@@ -83,7 +85,8 @@ handle_call({discover, ExpId, Tag}, _From,
     D0 = tricks_util:dict_find(ExpId, ETD0, ?EMPTY_EXP_DATA),
     #{pods := Pods} = D0,
 
-    List = tricks_util:dict_find(Tag, Pods, []),
+    Set = tricks_util:dict_find(Tag, Pods, ?EMPTY_POD_DATA),
+    List = sets:to_list(Set),
     {reply, {ok, List}, State}.
 
 handle_cast({register, ExpId, Tag, Data},
@@ -94,9 +97,13 @@ handle_cast({register, ExpId, Tag, Data},
     #{pods := Pods0} = D0,
 
     %% add pod
-    Pods1 = dict:append(Tag, Data, Pods0),
+    Set0 = tricks_util:dict_find(Tag, Pods0, ?EMPTY_POD_DATA),
+    Set1 = sets:add_element(Data, Set0),
 
-    %% update pods
+    %% update tag
+    Pods1 = dict:store(Tag, Set1, Pods0),
+
+    %% update experiment
     D1 = D0#{pods => Pods1},
     ETD1 = dict:store(ExpId, D1, ETD0),
     {noreply, State#state{exp_to_data=ETD1}};
@@ -109,16 +116,16 @@ handle_cast({unregister, ExpId, Tag, Data},
     #{pods := Pods0} = D0,
 
     %% remove pod
-    List0 = dict:fetch(Tag, Pods0),
-    List1 = lists:delete(Data, List0),
+    Set0 = tricks_util:dict_find(Tag, Pods0, ?EMPTY_POD_DATA),
+    Set1 = sets:del_element(Data, Set0),
 
-    Pods1 = case length(List1) of
+    Pods1 = case sets:size(Set1) of
         0 ->
             %% remove tag if no pods
             dict:erase(Tag, Pods0);
         _ ->
             %% otherwise update
-            dict:store(Tag, List1, Pods0)
+            dict:store(Tag, Set1, Pods0)
     end,
 
     ETD1 = case dict:size(Pods1) of

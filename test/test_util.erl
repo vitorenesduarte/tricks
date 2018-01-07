@@ -33,6 +33,8 @@
          event_subscribe/2,
          event_expect/2,
          event_expect/3,
+         discovery_register/3,
+         discovery_unregister/3,
          discovery_expect/3,
          discovery_expect/4,
          client_event_register/2,
@@ -78,6 +80,22 @@ event_expect(ExpId, Event0, Wait) ->
         Wait * 1000 ->
             ct:fail("No event")
     end.
+
+%% @doc Register a pod.
+discovery_register(ExpId, Tag0, Body) ->
+    Tag = tricks_util:parse_binary(Tag0),
+    ok = rpc:call(get(node),
+                  tricks_discovery_manager,
+                  register,
+                  [ExpId, Tag, Body]).
+
+%% @doc Unregister a pod.
+discovery_unregister(ExpId, Tag0, Body) ->
+    Tag = tricks_util:parse_binary(Tag0),
+    ok = rpc:call(get(node),
+                  tricks_discovery_manager,
+                  unregister,
+                  [ExpId, Tag, Body]).
 
 %% @doc Expect a discovery.
 %%      Fail if it does not meet expectations.

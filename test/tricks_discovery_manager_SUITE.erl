@@ -54,13 +54,88 @@ end_per_testcase(Case, Config) ->
     Config.
 
 all() ->
-    [discover_test].
+    [register_test,
+     unregister_test,
+     nada_test].
 
 %% ===================================================================
 %% tests
 %% ===================================================================
 
-discover_test(_Config) ->
+register_test(_Config) ->
+    %% start
+    ok = test_util:start(),
+
+    %% there's nothing registered
+    test_util:discovery_expect(10001, server, []),
+    test_util:discovery_expect(10001, client, []),
+    test_util:discovery_expect(10002, server, []),
+
+    %% register and expect
+    test_util:discovery_register(10001, server, {1, "127.0.0.1"}),
+    test_util:discovery_expect(10001, server, [1]),
+    test_util:discovery_expect(10001, client, []),
+    test_util:discovery_expect(10002, server, []),
+
+    %% register twice and expect
+    test_util:discovery_register(10002, server, {10, "127.0.0.1"}),
+    test_util:discovery_register(10001, server, {1, "127.0.0.1"}),
+    test_util:discovery_register(10002, server, {10, "127.0.0.1"}),
+    test_util:discovery_expect(10001, server, [1]),
+    test_util:discovery_expect(10001, client, []),
+    test_util:discovery_expect(10002, server, [10]),
+
+    %% register and expect
+    test_util:discovery_register(10001, server, {2, "127.0.0.2"}),
+    test_util:discovery_expect(10001, server, [1, 2]),
+    test_util:discovery_expect(10001, client, []),
+    test_util:discovery_expect(10002, server, [10]),
+
+    %% register and expect
+    test_util:discovery_register(10001, client, {100, "127.0.0.100"}),
+    test_util:discovery_expect(10001, server, [1, 2]),
+    test_util:discovery_expect(10001, client, [100]),
+    test_util:discovery_expect(10002, server, [10]),
+
+    %% stop
+    ok = test_util:stop().
+
+unregister_test(_Config) ->
+    %% start
+    ok = test_util:start(),
+
+    %% unregister something non existing
+    test_util:discovery_unregister(10001, server, {1, "127.0.0.1"}),
+
+    %% register stuff
+    test_util:discovery_register(10001, server, {1, "127.0.0.1"}),
+    test_util:discovery_register(10001, server, {2, "127.0.0.2"}),
+    test_util:discovery_register(10001, client, {100, "127.0.0.100"}),
+    test_util:discovery_register(10002, server, {10, "127.0.0.1"}),
+
+    %% unregister something non existing
+    test_util:discovery_unregister(10001, server, {3, "127.0.0.3"}),
+    test_util:discovery_unregister(10002, server, {3, "127.0.0.3"}),
+
+    %% expect
+    test_util:discovery_expect(10001, server, [1, 2]),
+    test_util:discovery_expect(10001, client, [100]),
+    test_util:discovery_expect(10002, server, [10]),
+
+    %% unregister something existing
+    test_util:discovery_unregister(10001, server, {2, "127.0.0.2"}),
+    test_util:discovery_expect(10001, server, [1]),
+    %% register it back
+    test_util:discovery_register(10001, server, {2, "127.0.0.2"}),
+    test_util:discovery_expect(10001, server, [1, 2]),
+    %% unregister it again
+    test_util:discovery_unregister(10001, server, {2, "127.0.0.2"}),
+    test_util:discovery_expect(10001, server, [1]),
+
+    %% stop
+    ok = test_util:stop().
+
+nada_test(_Config) ->
     %% start
     ok = test_util:start(),
 
