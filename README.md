@@ -93,10 +93,14 @@ has the same id)
 
 # Drivers API
 
-Methods will be tagged with __[CT]__ if it's a method from Clients to Tricks,
-and with __[TC]__ if from Tricks to Clients.
+Replicas in experiments can be written in any language,
+as long as there's a driver available.
+Drivers open a socket (`TRICKS_IP` and `TRICKS_PORT`)
+and talk with Tricks using the following API
+(__[DT]__ is used if it's a message from a Driver to Tricks,
+or with __[TD]__ otherwise).
 
-- [x] Register events __[CT]__
+- [x] Register events __[DT]__
 ```json
 {
   "expId": 123456,
@@ -105,7 +109,7 @@ and with __[TC]__ if from Tricks to Clients.
 }
 ```
 
-- [x] Subscription of events __[CT]__
+- [x] Subscription of events __[DT]__
 ```json
 {
   "expId": 123456,
@@ -115,7 +119,7 @@ and with __[TC]__ if from Tricks to Clients.
 }
 ```
 
-- [x] Notification of events __[TC]__
+- [x] Notification of events __[TD]__
 ```json
 {
   "expId": 123456,
@@ -125,7 +129,7 @@ and with __[TC]__ if from Tricks to Clients.
 }
 ```
 
-- [x] Pod discovery __[CT]__
+- [x] Pod discovery __[DT]__
 ```json
 {
   "expId": 123456,
@@ -134,7 +138,7 @@ and with __[TC]__ if from Tricks to Clients.
 }
 ```
 
-- [x] Pod discovery __[TC]__
+- [x] Pod discovery __[TD]__
 ```json
 {
   "expId": 123456,
