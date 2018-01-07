@@ -4,6 +4,6 @@ experiment:
   image: vitorenesduarte/tricks-example
   env:
   - name: TYPE
-    value: hello-world
-  - name: COUNT
+    value: loop
+  - name: ITERATIONS
     value: 10

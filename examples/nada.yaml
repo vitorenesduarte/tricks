@@ -4,7 +4,9 @@ experiment:
   image: vitorenesduarte/tricks-example
   env:
   - name: TYPE
-    value: server
+    value: loop
+  - name: ITERATIONS
+    value: 300
   workflow:
     start:
       name: go1
@@ -17,7 +19,9 @@ experiment:
   replicas: 3
   env:
   - name: TYPE
-    value: server
+    value: loop
+  - name: ITERATIONS
+    value: 300
   workflow:
     start:
       name: go2

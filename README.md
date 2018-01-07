@@ -19,7 +19,7 @@ An experiment is one or more TE's.
   - can be used to implement synchronization barrier
     (e.g. make sure all clients start at the same time)
 - [x] Workflow (e.g. only start a given TE once event X counter is Y)
-- [ ] Pod discovery
+- [x] Pod discovery
 - [ ] Log aggregation
 - [ ] Plotting from logs (e.g. latency/throughput, CDF, bar, line)
 - [ ] Detect coordination omission from logs
@@ -41,7 +41,7 @@ experiment:
   replicas: 3
   env:
   - name: TYPE
-    value: server
+    value: loop
   workflow:
     stop:
       name: client2_stop
@@ -51,9 +51,9 @@ experiment:
   replicas: 3
   env:
   - name: TYPE
-    value: client
-  - name: OPS
-    value: 100
+    value: loop
+  - name: ITERATIONS
+    value: 5
   workflow:
     start:
       name: server-ready
@@ -63,9 +63,9 @@ experiment:
   replicas: 6
   env:
   - name: TYPE
-    value: client
-  - name: OPS
-    value: 200
+    value: loop
+  - name: ITERATIONS
+    value: 10
   workflow:
     start:
       name: client1_stop
@@ -77,7 +77,6 @@ experiment:
 
 - [examples/hello-world.yaml](examples/hello-world.yaml)
 - [examples/implicit-events.yaml](examples/implicit-events.yaml)
-- [examples/explicit-events.yaml](examples/explicit-events.yaml)
 
 # Environment variables
 
@@ -126,7 +125,7 @@ and with __[TC]__ if from Tricks to Clients.
 }
 ```
 
-- [ ] Pod discovery __[CT]__
+- [x] Pod discovery __[CT]__
 ```json
 {
   "expId": 123456,
@@ -135,7 +134,7 @@ and with __[TC]__ if from Tricks to Clients.
 }
 ```
 
-- [ ] Pod discovery __[TC]__
+- [x] Pod discovery __[TC]__
 ```json
 {
   "expId": 123456,

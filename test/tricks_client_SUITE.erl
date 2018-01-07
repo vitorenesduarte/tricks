@@ -59,11 +59,11 @@ init_per_testcase(Case, Config) ->
 end_per_testcase(Case, Config) ->
     ct:pal("Ending test case: ~p", [Case]),
 
-    %% stop
-    ok = test_util:stop(),
-
     %% disconnect from tricks
     ok = test_util:client_disconnect(),
+
+    %% stop
+    ok = test_util:stop(),
 
     Config.
 
