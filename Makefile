@@ -50,9 +50,6 @@ rel:
 docker-rel: rel
 	docker build -t vitorenesduarte/${PACKAGE} .
 
-docker: docker-rel
-	docker push vitorenesduarte/${PACKAGE}
-
 logs:
 	tail -F .lager/*/log/*.log
 

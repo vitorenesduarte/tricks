@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+FILE=.tricks.yaml
+PORT=8817
+
+## create deployment file
+cat <<EOF > ${FILE}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tricks
+spec:
+  restartPolicy: Never
+  containers:
+  - name: tricks
+    image: vitorenesduarte/tricks
+    imagePullPolicy: Always
+    env:
+    - name: PORT
+      value: "${PORT}"
+EOF
+
+## check if tricks is already running
+RUNNING=$(kubectl get -f ${FILE} 2>&1 |
+          grep Running)
+
+if [ -z "${RUNNING}" ]; then
+  echo "Starting Tricks..."
+  kubectl create -f ${FILE}
+fi
+
+while [ -z "${TRICKS_IP}" ]; do
+  TRICKS_IP=$(kubectl describe -f ${FILE} |
+              grep IP |
+              cut -f2 -d: |
+              sed 's/ //g')
+done
+
+echo "Tricks IP: ${TRICKS_IP}"
