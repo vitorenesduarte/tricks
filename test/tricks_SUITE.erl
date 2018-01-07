@@ -47,10 +47,18 @@ end_per_suite(Config) ->
 
 init_per_testcase(Case, Config) ->
     ct:pal("Beginning test case: ~p", [Case]),
+
+    %% start
+    ok = test_util:start(),
+
     Config.
 
 end_per_testcase(Case, Config) ->
     ct:pal("Ending test case: ~p", [Case]),
+
+    %% stop
+    ok = test_util:stop(),
+
     Config.
 
 all() ->
@@ -62,9 +70,6 @@ all() ->
 %% ===================================================================
 
 hello_world_test(_Config) ->
-    %% start
-    ok = test_util:start(),
-
     ExpId = test_util:example_run("hello-world"),
     test_util:event_subscribe(ExpId, {"hello-world_start", 1}),
     test_util:event_subscribe(ExpId, {"hello-world_stop", 1}),
@@ -72,20 +77,11 @@ hello_world_test(_Config) ->
     %% wait for start
     test_util:event_expect(ExpId, {"hello-world_start", 1}, 20),
     %% wait for stop
-    test_util:event_expect(ExpId, {"hello-world_stop", 1}, 60),
-    
-    %% stop
-    ok = test_util:stop().
+    test_util:event_expect(ExpId, {"hello-world_stop", 1}, 60).
 
 implicit_events_test(_Config) ->
-    %% start
-    ok = test_util:start(),
-
     ExpId = test_util:example_run("implicit-events"),
     test_util:event_subscribe(ExpId, {"server2_stop", 5}),
 
     %% wait for end of 5 server2
-    test_util:event_expect(ExpId, {"server2_stop", 5}, 300),
-
-    %% stop
-    ok = test_util:stop().
+    test_util:event_expect(ExpId, {"server2_stop", 5}, 300).

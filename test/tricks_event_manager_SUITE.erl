@@ -47,10 +47,18 @@ end_per_suite(Config) ->
 
 init_per_testcase(Case, Config) ->
     ct:pal("Beginning test case: ~p", [Case]),
+
+    %% start
+    ok = test_util:start(),
+
     Config.
 
 end_per_testcase(Case, Config) ->
     ct:pal("Ending test case: ~p", [Case]),
+
+    %% stop
+    ok = test_util:stop(),
+
     Config.
 
 all() ->
@@ -61,9 +69,6 @@ all() ->
 %% ===================================================================
 
 event_test(_Config) ->
-    %% start
-    ok = test_util:start(),
-
     %% check experiments ids are used properly
     test_util:event_subscribe(1, {event, 1}),
     test_util:event_subscribe(1, {event, 2}),
@@ -84,7 +89,4 @@ event_test(_Config) ->
     test_util:event_subscribe(1, {event, 1}),
 
     test_util:event_expect(1, {event, 2}),
-    test_util:event_expect(1, {event, 1}),
-
-    %% stop
-    ok = test_util:stop().
+    test_util:event_expect(1, {event, 1}).

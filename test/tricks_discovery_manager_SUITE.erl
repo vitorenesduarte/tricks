@@ -47,10 +47,18 @@ end_per_suite(Config) ->
 
 init_per_testcase(Case, Config) ->
     ct:pal("Beginning test case: ~p", [Case]),
+
+    %% start
+    ok = test_util:start(),
+
     Config.
 
 end_per_testcase(Case, Config) ->
     ct:pal("Ending test case: ~p", [Case]),
+
+    %% stop
+    ok = test_util:stop(),
+
     Config.
 
 all() ->
@@ -63,9 +71,6 @@ all() ->
 %% ===================================================================
 
 register_test(_Config) ->
-    %% start
-    ok = test_util:start(),
-
     %% there's nothing registered
     test_util:discovery_expect(10001, server, []),
     test_util:discovery_expect(10001, client, []),
@@ -95,15 +100,9 @@ register_test(_Config) ->
     test_util:discovery_register(10001, client, {100, "127.0.0.100"}),
     test_util:discovery_expect(10001, server, [1, 2]),
     test_util:discovery_expect(10001, client, [100]),
-    test_util:discovery_expect(10002, server, [10]),
-
-    %% stop
-    ok = test_util:stop().
+    test_util:discovery_expect(10002, server, [10]).
 
 unregister_test(_Config) ->
-    %% start
-    ok = test_util:start(),
-
     %% unregister something non existing
     test_util:discovery_unregister(10001, server, {1, "127.0.0.1"}),
 
@@ -130,15 +129,9 @@ unregister_test(_Config) ->
     test_util:discovery_expect(10001, server, [1, 2]),
     %% unregister it again
     test_util:discovery_unregister(10001, server, {2, "127.0.0.2"}),
-    test_util:discovery_expect(10001, server, [1]),
-
-    %% stop
-    ok = test_util:stop().
+    test_util:discovery_expect(10001, server, [1]).
 
 nada_test(_Config) ->
-    %% start
-    ok = test_util:start(),
-
     %% start nada
     %% this experiment will
     %% - start 1 app1 when we register event go1
@@ -160,7 +153,4 @@ nada_test(_Config) ->
     test_util:discovery_expect(ExpId, app2, [1, 2, 3], 60),
     
     %% app1 should stop soon
-    test_util:discovery_expect(ExpId, app1, [], 120),
-
-    %% stop
-    ok = test_util:stop().
+    test_util:discovery_expect(ExpId, app1, [], 120).
