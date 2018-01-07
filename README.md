@@ -24,7 +24,7 @@ An experiment is one or more TE's.
 - [ ] Plotting from logs (e.g. latency/throughput, CDF, bar, line)
 - [ ] Detect coordination omission from logs
 - [ ] Federation support (run across multiple Kubernetes clusters)
-- [ ] Spot instances support (if an instance is killed, the experiment is restarted)
+- [ ] Spot/preemptible instances support (if an instance is killed, the experiment is restarted)
 
 ### Example
 
