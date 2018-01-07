@@ -38,7 +38,7 @@
 
 -record(state, {socket :: inet:socket()}).
 
-%% @doc Ranch trickslback when a new connection is accepted.
+%% @doc Ranch callback when a new connection is accepted.
 start_link(Ref, Socket, ranch_tcp, _Opts = []) ->
     Arg = [Ref, Socket],
     {ok, proc_lib:spawn_link(?MODULE,
@@ -63,7 +63,7 @@ handle_cast(Msg, State) ->
     {stop, {unhandled, Msg}, State}.
 
 handle_info({tcp, Socket, Bin}, State) ->
-    do_receive(Bin, Socket),
+    handle_message(Bin, Socket),
     {noreply, State};
 
 handle_info({tcp_closed, Socket}, State) ->
@@ -76,7 +76,7 @@ handle_info({notification, ExpId, Event}, #state{socket=Socket}=State) ->
     {noreply, State}.
 
 %% @private
-do_receive(Bin, Socket) ->
+handle_message(Bin, Socket) ->
     %% decode message
     Message = tricks_client_message:decode(Bin),
     #{expId := ExpId,
