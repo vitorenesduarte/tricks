@@ -16,3 +16,4 @@ rebar3.crashdump
 *.DS_Store
 .cache
 Library/
+.docker

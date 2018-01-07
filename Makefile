@@ -2,7 +2,7 @@ PACKAGE     = tricks
 REBAR       = rebar3
 HOME        = $(shell pwd)
 
-.PHONY: test
+.PHONY: test rel
 
 all: compile
 
@@ -42,6 +42,16 @@ lint:
 
 shell:
 	${REBAR} shell --apps ${PACKAGE}
+
+rel:
+	rm -rf _build/defaul/rel
+	${REBAR} release
+
+docker-rel: rel
+	docker build -t vitorenesduarte/${PACKAGE} .
+
+docker: docker-rel
+	docker push vitorenesduarte/${PACKAGE}
 
 logs:
 	tail -F .lager/*/log/*.log
