@@ -47,27 +47,36 @@ end_per_suite(Config) ->
 
 init_per_testcase(Case, Config) ->
     ct:pal("Beginning test case: ~p", [Case]),
-    Config.
 
-end_per_testcase(Case, Config) ->
-    ct:pal("Ending test case: ~p", [Case]),
-    Config.
-
-all() ->
-    [register_event_test,
-     subscribe_event_test].
-
-%% ===================================================================
-%% tests
-%% ===================================================================
-
-register_event_test(_Config) ->
     %% start
     ok = test_util:start(),
 
     %% connect to tricks
     ok = test_util:client_connect(),
 
+    Config.
+
+end_per_testcase(Case, Config) ->
+    ct:pal("Ending test case: ~p", [Case]),
+
+    %% stop
+    ok = test_util:stop(),
+
+    %% disconnect from tricks
+    ok = test_util:client_disconnect(),
+
+    Config.
+
+all() ->
+    [register_event_test,
+     subscribe_event_test,
+     discovery_test].
+
+%% ===================================================================
+%% tests
+%% ===================================================================
+
+register_event_test(_Config) ->
     %% subscribe to an event
     test_util:event_subscribe(17, {event, 1}),
     test_util:event_subscribe(17, {event, 2}),
@@ -78,21 +87,9 @@ register_event_test(_Config) ->
     
     %% register another event
     test_util:client_event_register(17, event),
-    test_util:event_expect(17, {event, 2}),
-
-    %% disconnect
-    ok = test_util:client_disconnect(),
-
-    %% stop
-    ok = test_util:stop().
+    test_util:event_expect(17, {event, 2}).
 
 subscribe_event_test(_Config) ->
-    %% start
-    ok = test_util:start(),
-
-    %% connect to tricks
-    ok = test_util:client_connect(),
-
     %% subscribe to an event using the client
     test_util:client_event_subscribe(17, {event, 1}),
     test_util:client_event_subscribe(17, {event, 2}),
@@ -103,10 +100,23 @@ subscribe_event_test(_Config) ->
     
     %% register another event
     test_util:event_register(17, event),
-    test_util:client_event_expect(17, {event, 2}),
+    test_util:client_event_expect(17, {event, 2}).
 
-    %% disconnect
-    ok = test_util:client_disconnect(),
+discovery_test(_Config) ->
+    %%  expect nothing
+    test_util:client_discovery_expect(17, server, []),
 
-    %% stop
-    ok = test_util:stop().
+    %% register and expect
+    test_util:discovery_register(17, server, {1, "127.0.0.1"}),
+    test_util:client_discovery_expect(17, server, [1]),
+
+    %% register and expect
+    test_util:discovery_register(18, client, {2, "127.0.0.2"}),
+    test_util:client_discovery_expect(18, client, [2]),
+    test_util:discovery_register(18, client, {1, "127.0.0.12"}),
+    test_util:client_discovery_expect(18, client, [1, 2]),
+
+    %% unregister and expect
+    test_util:discovery_unregister(18, client, {1, "127.0.0.12"}),
+    test_util:client_discovery_expect(18, client, [2]),
+    test_util:client_discovery_expect(17, server, [1]).

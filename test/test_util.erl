@@ -40,6 +40,7 @@
          client_event_register/2,
          client_event_subscribe/2,
          client_event_expect/2,
+         client_discovery_expect/3,
          client_connect/0,
          client_disconnect/0,
          example_run/1,
@@ -156,11 +157,42 @@ client_event_expect(ExpId, Event0) ->
       value := MValue} = tricks_client_message:decode(Bin),
     MEvent = {MEventName, MValue},
 
-    case {MExpId, MEvent} of
-        {ExpId, Event} ->
+    case ExpId == MExpId andalso
+         Event == MEvent of
+        true ->
             ok;
-        _ ->
+        false ->
             ct:fail("Wrong event [~p] ~p", [MExpId, MEvent])
+    end.
+
+%% @doc Expect a discovery by client.
+%%      Fail if it does not meet expectations.
+client_discovery_expect(ExpId, Tag0, IdsExpected) ->
+    Tag = tricks_util:parse_binary(Tag0),
+
+    %% send request
+    Message = tricks_client_message:encode(ExpId, {discovery, Tag}),
+    ok = tricks_client_socket:send(get(socket), Message),
+
+    %% receive reply
+    {ok, Bin} = tricks_client_socket:recv(get(socket)),
+
+    #{expId := MExpId,
+      type := <<"pods">>,
+      tag := MTag,
+      pods := Data} = tricks_client_message:decode(Bin),
+
+    %% extract ids from pod data
+    Ids = [Id || #{id := Id,
+                   ip := _Ip} <- Data],
+
+    case ExpId == MExpId andalso
+         Tag == MTag andalso
+         lists:sort(Ids) == lists:sort(IdsExpected) of
+        true ->
+            ok;
+        false ->
+            ct:fail("Wrong discovery [~p] ~p", [ExpId, Ids])
     end.
 
 %% @doc Connect to tricks.

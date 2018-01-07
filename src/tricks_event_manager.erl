@@ -134,4 +134,3 @@ handle_cast({register, ExpId, EventName}, #state{exp_to_data=ETD0}=State) ->
 %% @private
 notify(Pid, ExpId, Event) ->
     Pid ! {notification, ExpId, Event}.
-

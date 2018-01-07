@@ -80,18 +80,25 @@ do_receive(Bin, Socket) ->
     %% decode message
     Message = tricks_client_message:decode(Bin),
     #{expId := ExpId,
-      type := Type,
-      eventName := EventName} = Message,
+      type := Type} = Message,
 
     case Type of
         <<"event">> ->
             %% register the event
+            #{eventName := EventName} = Message,
             tricks_event_manager:register(ExpId, EventName);
         <<"subscription">> ->
             %% subscribe event
-            #{value := Value} = Message,
+            #{eventName := EventName,
+              value := Value} = Message,
             Event = {EventName, Value},
-            tricks_event_manager:subscribe(ExpId, Event, self())
+            tricks_event_manager:subscribe(ExpId, Event, self());
+        <<"discovery">> ->
+            %% discover and reply
+            #{tag := Tag} = Message,
+            {ok, Data} = tricks_discovery_manager:discover(ExpId, Tag),
+            Reply = tricks_client_message:encode(ExpId, {pods, {Tag, Data}}),
+            tricks_client_socket:send(Socket, Reply)
     end,
 
     %% reactivate socket
