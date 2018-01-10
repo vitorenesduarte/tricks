@@ -17,4 +17,3 @@ rebar3.crashdump
 .cache
 Library/
 .docker
-.tricks.yaml

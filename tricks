@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-FILE=.tricks.yaml
+FILE=/tmp/.tricks.yaml
 PORT=8817
 
 ## create deployment file
@@ -22,18 +22,65 @@ spec:
       value: "${PORT}"
 EOF
 
-## check if tricks is already running
-RUNNING=$(kubectl get -f ${FILE} 2>&1 |
-          grep Running)
+function is_running {
+  kubectl get -f ${FILE} 2>&1 | grep Running
+}
 
-if [ -z "${RUNNING}" ]; then
-  echo "Starting Tricks..."
-  kubectl create -f ${FILE}
-  kubectl expose pod tricks --type=NodePort --port=${PORT}
-fi
+function get_ip {
+  # TODO check if context is minikube
+  minikube service tricks --url
+}
 
-while [ -z "${TRICKS_IP}" ]; do
-  TRICKS_IP=$(minikube service tricks --url)
-done
+function start {
+  local _running=$(is_running)
+  local _ip=$(get_ip)
 
-echo "Tricks IP: ${TRICKS_IP}"
+  if [ -z "${_running}" ]; then
+    echo "Starting Tricks..."
+    kubectl create -f ${FILE}
+    kubectl expose pod tricks --type=NodePort --port=${PORT}
+
+    echo "Configuring Tricks..."
+    while [ -z "${_ip}" ]; do
+      _ip=$(get_ip)
+      sleep 1
+    done
+
+    echo "Tricks configured correctly!"
+
+  else
+    if [ -z "${_ip}" ]; then
+      echo "Tricks is running, but not configured correctly!"
+    fi
+  fi
+}
+
+function experiment {
+  local _yaml=$1
+  local _json=/tmp/exp.json
+
+  if [ ! -f ${_yaml} ]; then
+    echo "File ${_yaml} not found!"
+    exit 1
+  fi
+
+  python -c 'import sys, yaml, json; json.dump(yaml.load(sys.stdin), sys.stdout, indent=4)' < ${_yaml} > ${_json}
+  cat ${_json}
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  exp)
+    if [ $# -ne 2 ]; then
+      echo "Usage: tricks exp FILE"
+      exit 1
+    fi
+    start
+    experiment $2
+    ;;
+  *)
+    echo "Usage: tricks {start|exp}"
+    exit 1
+esac
