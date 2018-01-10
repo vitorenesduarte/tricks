@@ -23,3 +23,6 @@ http://www.cs.utexas.edu/~vijay/papers/sosp17-pebblesdb.pdf
 
 - detect coordination omission
 https://bravenewgeek.com/everything-you-know-about-latency-is-wrong/
+
+- fault injection
+https://github.com/gaia-adm/pumba

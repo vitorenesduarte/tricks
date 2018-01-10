@@ -23,6 +23,10 @@ An experiment is one or more TE's.
 - [ ] Log aggregation
 - [ ] Plotting from logs (e.g. latency/throughput, CDF, bar, line)
 - [ ] Detect coordination omission from logs
+- [ ] Fault injection
+  - (when) could be defined in the same way workflow is
+  - (what) maybe provide some sort of pod selector for process faults,
+    and link selector for network faults
 - [ ] Federation support (run across multiple Kubernetes clusters)
 - [ ] Spot/preemptible instances support (if an instance is killed, the experiment is restarted)
 
