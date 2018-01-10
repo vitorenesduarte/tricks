@@ -42,8 +42,8 @@ init([]) ->
     %% configure
     configure(),
 
-    %% start clients tcp acceptor
-    start_client_acceptor(),
+    %% start driver tcp acceptor
+    start_driver_acceptor(),
 
     %% start app, scheduler, event manager,
     %% discovery manager
@@ -58,26 +58,26 @@ init([]) ->
 
 %% @private
 configure() ->
-    %% select random listening client port
-    tricks_config:set(port, random_port()).
+    %% select random listening driver port
+    tricks_config:set(driver_port, random_port()).
 
 %% @private
-start_client_acceptor() ->
-    Listener = tricks_client_listener,
+start_driver_acceptor() ->
+    Listener = tricks_driver_listener,
     Transport = ranch_tcp,
     %% TODO make this configurable
-    Options = [{port, tricks_config:get(port)},
+    Options = [{port, tricks_config:get(driver_port)},
                {max_connections, 1024},
                {num_acceptors, 1}],
-    ClientHandler = tricks_client_handler,
+    DriverHandler = tricks_driver_handler,
 
     {ok, _} = ranch:start_listener(Listener,
                                    Transport,
                                    Options,
-                                   ClientHandler,
+                                   DriverHandler,
                                    []).
 
-%% @private From partisan.
+%% @private From partisan code.
 random_port() ->
     {ok, Socket} = gen_tcp:listen(0, []),
     {ok, {_, Port}} = inet:sockname(Socket),

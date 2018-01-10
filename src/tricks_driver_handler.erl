@@ -19,7 +19,7 @@
 %% -------------------------------------------------------------------
 
 
--module(tricks_client_handler).
+-module(tricks_driver_handler).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
 -include("tricks.hrl").
@@ -47,12 +47,12 @@ start_link(Ref, Socket, ranch_tcp, _Opts = []) ->
 
 %% @doc Implementation of `ranch_protocol' using `gen_server'.
 init([Ref, Socket]) ->
-    lager:info("New client connection ~p", [Socket]),
+    lager:info("New driver connection ~p", [Socket]),
 
     %% configure socket
     ok = ranch:accept_ack(Ref),
-    ok = tricks_client_socket:configure(Socket),
-    ok = tricks_client_socket:activate(Socket),
+    ok = tricks_driver_socket:configure(Socket),
+    ok = tricks_driver_socket:activate(Socket),
 
     gen_server:enter_loop(?MODULE, [], #state{socket=Socket}).
 
@@ -67,18 +67,18 @@ handle_info({tcp, Socket, Bin}, State) ->
     {noreply, State};
 
 handle_info({tcp_closed, Socket}, State) ->
-    lager:info("TCP client socket closed ~p", [Socket]),
+    lager:info("TCP driver socket closed ~p", [Socket]),
     {stop, normal, State};
 
 handle_info({notification, ExpId, Event}, #state{socket=Socket}=State) ->
-    Message = tricks_client_message:encode(ExpId, {notification, Event}),
-    tricks_client_socket:send(Socket, Message),
+    Message = tricks_driver_message:encode(ExpId, {notification, Event}),
+    tricks_driver_socket:send(Socket, Message),
     {noreply, State}.
 
 %% @private
 handle_message(Bin, Socket) ->
     %% decode message
-    Message = tricks_client_message:decode(Bin),
+    Message = tricks_driver_message:decode(Bin),
     #{expId := ExpId,
       type := Type} = Message,
 
@@ -97,9 +97,9 @@ handle_message(Bin, Socket) ->
             %% discover and reply
             #{tag := Tag} = Message,
             {ok, Data} = tricks_discovery_manager:discover(ExpId, Tag),
-            Reply = tricks_client_message:encode(ExpId, {pods, {Tag, Data}}),
-            tricks_client_socket:send(Socket, Reply)
+            Reply = tricks_driver_message:encode(ExpId, {pods, {Tag, Data}}),
+            tricks_driver_socket:send(Socket, Reply)
     end,
 
     %% reactivate socket
-    ok = tricks_client_socket:activate(Socket).
+    ok = tricks_driver_socket:activate(Socket).

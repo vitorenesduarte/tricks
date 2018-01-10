@@ -18,9 +18,9 @@
 %%
 %% -------------------------------------------------------------------
 
-%% @doc Client socket module.
+%% @doc Driver socket module.
 
--module(tricks_client_socket).
+-module(tricks_driver_socket).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
 -include("tricks.hrl").
