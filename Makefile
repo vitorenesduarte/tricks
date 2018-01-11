@@ -47,8 +47,8 @@ rel:
 	rm -rf _build/defaul/rel
 	${REBAR} release
 
-docker-rel: rel
-	docker build -t vitorenesduarte/${PACKAGE} .
+minikube-docker-rel: rel
+	bin/minikube-docker-build.sh
 
 logs:
 	tail -F .lager/*/log/*.log
