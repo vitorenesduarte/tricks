@@ -60,8 +60,8 @@ init([]) ->
     lager:info("tricks scheduler initialized!"),
 
     %% init kuberl
-    %Cfg = kuberl:cfg_with_host("kubernetes.default"),
-    Cfg = #{},
+    Host = tricks_config:get(k8s_api_server, "localhost:8001"),
+    Cfg = kuberl:cfg_with_host(Host),
 
     {ok, #state{kuberl_cfg=Cfg,
                 schedule=dict:new()}}.

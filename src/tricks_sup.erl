@@ -62,7 +62,10 @@ init([]) ->
 %% @private
 configure() ->
     %% select random listening driver port
-    tricks_config:set(driver_port, random_port()).
+    tricks_config:set(driver_port, random_port()),
+
+    %% configure k8s api server
+    configure_str("K8S_API_SERVER", k8s_api_server).
 
 %% @private
 start_driver_acceptor() ->
@@ -86,8 +89,8 @@ start_http_dispatch() ->
         {'_', [
             {"/exp", tricks_http_exp_handler, []}
         ]}
-		]),
-		{ok, _} = cowboy:start_clear(
+    ]),
+    {ok, _} = cowboy:start_clear(
         http,
         ?WEB_CONFIG,
         #{env => #{dispatch => Dispatch}}
@@ -99,3 +102,12 @@ random_port() ->
     {ok, {_, Port}} = inet:sockname(Socket),
     ok = gen_tcp:close(Socket),
     Port.
+
+%% @private
+configure_str(Env, Var) ->
+    case os:getenv(Env) of
+        false ->
+            ok;
+        Value ->
+            tricks_config:set(Var, Value)
+    end.
