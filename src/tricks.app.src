@@ -9,6 +9,7 @@
     crypto,
     inets,
     lager,
+    jsx,
     kuberl,
     ranch,
     cowboy]},
