@@ -24,17 +24,17 @@
 -include("tricks.hrl").
 
 %% API
--export([run/1,
+-export([get_file_binary/2,
          run/2]).
 
--spec run(string()) -> {ok, exp_id()}.
-run(Name) ->
-    run(".", Name).
+-spec get_file_binary(string(), string()) -> binary().
+get_file_binary(Dir, Name) ->
+    File = Dir ++ "/examples/json/" ++ Name ++ ".json",
+    {ok, Bin} = file:read_file(File),
+    Bin.
 
 -spec run(string(), string()) -> {ok, exp_id()}.
 run(Dir, Name) ->
-    File = Dir ++ "/examples/json/" ++ Name ++ ".json",
-    {ok, Bin} = file:read_file(File),
+    Bin = get_file_binary(Dir, Name),
     Exp = tricks_util:parse_json(Bin),
-    lager:info("Config:~n~p", [Exp]),
     tricks:run(Exp).

@@ -30,6 +30,10 @@
 init(Req0, Opts) ->
     {ok, Body, _} = cowboy_req:read_body(Req0),
     Exp = tricks_util:parse_json(Body),
-    tricks:run(Exp),
-    Req = cowboy_req:reply(200, Req0),
+    {ok, ExpId} = tricks:run(Exp),
+    Reply = tricks_util:compose_json(#{expId => ExpId}),
+    Req = cowboy_req:reply(200,
+                           #{<<"Content-Type">> => <<"application/json">>},
+                           Reply,
+                           Req0),
     {ok, Req, Opts}.

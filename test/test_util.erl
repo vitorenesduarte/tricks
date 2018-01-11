@@ -44,6 +44,7 @@
          driver_connect/0,
          driver_disconnect/0,
          example_run/1,
+         http_example_run/1,
          start/0,
          stop/0]).
 
@@ -216,6 +217,28 @@ example_run(Name) ->
                            tricks_example,
                            run,
                            [home_dir(), Name]),
+    ExpId.
+
+%% @doc Run an example with an http call.
+http_example_run(Name) ->
+    %% preprare hackney request
+    Method = get,
+    Url = <<"localhost:8080/exp">>,
+    Headers = [],
+    Payload = rpc:call(get(node),
+                       tricks_example,
+                       get_file_binary,
+                       [home_dir(), Name]),
+    Options = [with_body],
+
+    %% TODO add hackney as dep for tests
+    %% and avoid rpc:call
+    Args = [Method, Url, Headers, Payload, Options],
+    {ok, 200, _RespHeaders, ResponseBody} = rpc:call(get(node),
+                                                     hackney,
+                                                     request,
+                                                     Args),
+    #{expId := ExpId} = tricks_util:parse_json(ResponseBody),
     ExpId.
 
 %% @doc Start app.
