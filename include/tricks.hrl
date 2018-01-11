@@ -20,10 +20,13 @@
 -type pod_ip() :: list().
 -type pod_data() :: {pod_id(), pod_ip()}.
 
-%% client listener
+%% http listener
 -define(PORT, 8817).
 -define(TCP_ACTIVE_OPTION, {active, once}).
--define(TCP_OPTIONS,
-        [{packet, 4},
-         {nodelay, true},
-         {keepalive, true}]).
+-define(TCP_OPTIONS, [{packet, 4},
+                      {nodelay, true},
+                      {keepalive, true}]).
+
+%% cowboy config
+-define(WEB_PORT, 8080).
+-define(WEB_CONFIG, [{port, ?WEB_PORT}]).

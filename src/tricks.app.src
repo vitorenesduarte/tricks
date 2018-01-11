@@ -10,8 +10,7 @@
     inets,
     lager,
     kuberl,
-    ranch,
-    mochiweb]},
+    ranch]},
   {env,[]},
   {modules, []},
 

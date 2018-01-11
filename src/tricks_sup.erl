@@ -45,6 +45,9 @@ init([]) ->
     %% start driver tcp acceptor
     start_driver_acceptor(),
 
+    %% start http dispatch
+    start_http_dispatch(),
+
     %% start app, scheduler, event manager,
     %% discovery manager
     Actors = [?APP,
@@ -76,6 +79,19 @@ start_driver_acceptor() ->
                                    Options,
                                    DriverHandler,
                                    []).
+
+%% @private
+start_http_dispatch() ->
+    Dispatch = cowboy_router:compile([
+        {'_', [
+            {"/exp", tricks_http_exp_handler, []}
+        ]}
+		]),
+		{ok, _} = cowboy:start_clear(
+        http,
+        ?WEB_CONFIG,
+        #{env => #{dispatch => Dispatch}}
+    ).
 
 %% @private From partisan code.
 random_port() ->
