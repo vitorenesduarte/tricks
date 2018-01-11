@@ -9,7 +9,6 @@
     crypto,
     inets,
     lager,
-    hackney,
     jsx,
     kuberl,
     ranch,
