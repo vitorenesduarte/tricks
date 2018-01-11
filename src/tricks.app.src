@@ -10,7 +10,8 @@
     inets,
     lager,
     kuberl,
-    ranch]},
+    ranch,
+    cowboy]},
   {env,[]},
   {modules, []},
 

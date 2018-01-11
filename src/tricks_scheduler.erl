@@ -60,6 +60,8 @@ init([]) ->
     lager:info("tricks scheduler initialized!"),
 
     %% init kuberl
+    %% if API server not defined,
+    %% use `kubectl proxy` default endpoint
     Host = tricks_config:get(k8s_api_server, "localhost:8001"),
     Cfg = kuberl:cfg_with_host(Host),
 
