@@ -33,6 +33,7 @@
          parse_binary/1,
          parse_integer/1,
          parse_event/1,
+         parse_pod_data/1,
          parse_json/1,
          compose_json/1,
          dict_find/3]).
@@ -71,6 +72,11 @@ parse_integer(A) when is_binary(A) ->
 -spec parse_event(term()) -> event().
 parse_event({A, B}) ->
     {parse_binary(A), parse_integer(B)}.
+
+%% @doc Parse pod data.
+-spec parse_pod_data(term()) -> pod_data().
+parse_pod_data({A, B}) ->
+    {parse_integer(A), parse_binary(B)}.
 
 %% @doc Parse JSON. Return a map where labels are atoms.
 -spec parse_json(binary()) -> maps:map().

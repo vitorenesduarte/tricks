@@ -87,22 +87,24 @@ event_expect(ExpId0, Event0, Wait) ->
     end.
 
 %% @doc Register a pod.
-discovery_register(ExpId0, Tag0, Body) ->
+discovery_register(ExpId0, Tag0, PodData0) ->
     ExpId = tricks_util:parse_binary(ExpId0),
     Tag = tricks_util:parse_binary(Tag0),
+    PodData = tricks_util:parse_pod_data(PodData0),
     ok = rpc:call(get(node),
                   tricks_discovery_manager,
                   register,
-                  [ExpId, Tag, Body]).
+                  [ExpId, Tag, PodData]).
 
 %% @doc Unregister a pod.
-discovery_unregister(ExpId0, Tag0, Body) ->
+discovery_unregister(ExpId0, Tag0, PodData0) ->
     ExpId = tricks_util:parse_binary(ExpId0),
     Tag = tricks_util:parse_binary(Tag0),
+    PodData = tricks_util:parse_pod_data(PodData0),
     ok = rpc:call(get(node),
                   tricks_discovery_manager,
                   unregister,
-                  [ExpId, Tag, Body]).
+                  [ExpId, Tag, PodData]).
 
 %% @doc Expect a discovery.
 %%      Fail if it does not meet expectations.
@@ -211,7 +213,7 @@ driver_connect() ->
     Port = rpc:call(get(node),
                     tricks_config,
                     get,
-                    [driver_port]),
+                    [tricks_driver_port]),
     {ok, Socket} = tricks_driver_socket:connect(?LOCALHOST, Port),
     ok = tricks_driver_socket:configure(Socket),
     put(socket, Socket),
