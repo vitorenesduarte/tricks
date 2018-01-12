@@ -51,7 +51,7 @@ start_link() ->
 %% @doc Register the occurrence of an event.
 -spec register(exp_id(), event_name()) -> ok | error().
 register(ExpId, EventName)
-  when is_integer(ExpId), is_binary(EventName) ->
+  when is_binary(ExpId), is_binary(EventName) ->
     gen_server:cast(?MODULE, {register, ExpId, EventName}).
 
 %% @doc Subscribe an event.
@@ -65,7 +65,7 @@ register(ExpId, EventName)
 %%      only one notification is sent.
 -spec subscribe(exp_id(), event(), pid()) -> ok | error().
 subscribe(ExpId, {Name, Value}=Event, Pid)
-  when is_integer(ExpId), is_binary(Name), is_integer(Value), is_pid(Pid) ->
+  when is_binary(ExpId), is_binary(Name), is_integer(Value), is_pid(Pid) ->
     gen_server:call(?MODULE, {subscribe, ExpId, Event, Pid}, infinity).
 
 init([]) ->

@@ -62,16 +62,16 @@ do_run(Experiment) ->
     ExpId = tricks_exp:exp_id(),
 
     lists:foreach(
-        fun(EntrySpec) ->
-            Replicas = get_replicas_info(EntrySpec),
+        fun(EntrySpec0) ->
+            #{replicas := Replicas}=EntrySpec = set_replicas_info(EntrySpec0),
             {Start, End} = get_workflow_info(EntrySpec),
 
             lists:foreach(
                 fun(PodId) ->
                     %% pod body
                     Body = tricks_exp:pod_body(ExpId,
-                                            PodId,
-                                            EntrySpec),
+                                               PodId,
+                                               EntrySpec),
 
                     %% schedule pod
                     tricks_scheduler:schedule_pod(ExpId, Body, Start, End)
@@ -84,11 +84,16 @@ do_run(Experiment) ->
 
     ExpId.
 
-%% @private Get replicas info.
-%%          Default 1.
--spec get_replicas_info(maps:map()) -> integer().
-get_replicas_info(EntrySpec) ->
-    maps:get(replicas, EntrySpec, 1).
+%% @private Set replicas info.
+%%          If not defined, set it as 1 (default value).
+-spec set_replicas_info(maps:map()) -> maps:map().
+set_replicas_info(EntrySpec0) ->
+    case maps:is_key(replicas, EntrySpec0) of
+        true ->
+            EntrySpec0;
+        false ->
+            maps:put(replicas, 1, EntrySpec0)
+    end.
 
 %% @private Get workflow info.
 %%           - Default start: now

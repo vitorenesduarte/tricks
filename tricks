@@ -39,6 +39,10 @@ spec:
     image: vitorenesduarte/tricks
     imagePullPolicy: Never
     env:
+    - name: POD_IP 
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
     - name: K8S_API_SERVER
       value: "${K8S_API_SERVER}"
     - name: K8S_API_TOKEN
@@ -72,6 +76,11 @@ function get_service_url {
 
   # TODO check if context is minikube
   minikube service tricks --url 2> /dev/null
+}
+
+function build {
+  # TODO remove
+  bin/minikube-docker-build.sh
 }
 
 function start {
@@ -153,6 +162,7 @@ function experiment {
 
 case "$1" in
   start)
+    build
     start
     ;;
   stop)

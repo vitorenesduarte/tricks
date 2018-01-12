@@ -61,19 +61,22 @@ init([]) ->
 
 %% @private
 configure() ->
-    %% select random listening driver port
-    tricks_config:set(driver_port, random_port()),
+    %% configure driver IP
+    configure_from_env(string, "POD_IP", tricks_driver_ip),
+
+    %% select random driver port
+    tricks_config:set(tricks_driver_port, random_port()),
 
     %% configure k8s api server and token
-    configure_str("K8S_API_SERVER", k8s_api_server),
-    configure_str("K8S_API_TOKEN", k8s_api_token).
+    configure_from_env(string, "K8S_API_SERVER", k8s_api_server),
+    configure_from_env(string, "K8S_API_TOKEN", k8s_api_token).
 
 %% @private
 start_driver_acceptor() ->
     Listener = tricks_driver_listener,
     Transport = ranch_tcp,
     %% TODO make this configurable
-    Options = [{port, tricks_config:get(driver_port)},
+    Options = [{port, tricks_config:get(tricks_driver_port)},
                {max_connections, 1024},
                {num_acceptors, 1}],
     DriverHandler = tricks_driver_handler,
@@ -105,7 +108,7 @@ random_port() ->
     Port.
 
 %% @private
-configure_str(Env, Var) ->
+configure_from_env(string, Env, Var) ->
     case os:getenv(Env) of
         false ->
             ok;

@@ -6,12 +6,22 @@ package org.tricks.driver.json;
  */
 public class Message {
 
-    public static Message parseFrom(byte[] data) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private String expId;
+    private String type;
+
+    public Message() {
     }
 
-    public byte[] toByteArray() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Message(String expId, String type) {
+        this.expId = expId;
+        this.type = type;
     }
 
+    public String getExpId() {
+        return expId;
+    }
+
+    public String getType() {
+        return type;
+    }
 }

@@ -65,18 +65,11 @@ handle_event(Type, #{metadata := #{labels := Labels},
                      status   := #{phase := Phase}=Status}, State0) ->
     %% extract exp id and tag pod info
     %% from its labels
-    #{expId := ExpId0,
+    #{expId := ExpId,
       podId := PodId0,
       tag   := Tag} = Labels,
-    ExpId = tricks_util:parse_integer(ExpId0),
     PodId = tricks_util:parse_integer(PodId0),
-
-    PodIp = case maps:find(podIP, Status) of
-        {ok, V} ->
-            tricks_util:parse_list(V);
-        error ->
-            undefined
-    end,
+    PodIp = maps:get(podIP, Status, undefined),
 
     %% create pod data
     Data = {PodId, PodIp},

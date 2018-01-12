@@ -52,22 +52,22 @@ start_link() ->
 %% @doc Register pod.
 -spec register(exp_id(), tag(), pod_data()) -> ok | error().
 register(ExpId, Tag, {Id, Ip}=Data)
-  when is_integer(ExpId), is_binary(Tag),
-       is_integer(Id), is_list(Ip) ->
+  when is_binary(ExpId), is_binary(Tag),
+       is_integer(Id), is_binary(Ip) ->
     gen_server:cast(?MODULE, {register, ExpId, Tag, Data}).
 
 %% @doc Unregister pod.
 -spec unregister(exp_id(), tag(), pod_data()) -> ok | error().
 unregister(ExpId, Tag, {Id, Ip}=Data)
-  when is_integer(ExpId), is_binary(Tag),
-       is_integer(Id), is_list(Ip) ->
+  when is_binary(ExpId), is_binary(Tag),
+       is_integer(Id), is_binary(Ip) ->
     gen_server:cast(?MODULE, {unregister, ExpId, Tag, Data}).
 
 %% @doc Find pods in a given experiment,
 %%      with a given tag.
 -spec discover(exp_id(), tag()) -> {ok, [pod_data()]} | error().
 discover(ExpId, Tag)
-  when is_integer(ExpId), is_binary(Tag) ->
+  when is_binary(ExpId), is_binary(Tag) ->
 gen_server:call(?MODULE, {discover, ExpId, Tag}, infinity).
 
 init([]) ->

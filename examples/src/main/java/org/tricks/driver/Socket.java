@@ -1,5 +1,6 @@
 package org.tricks.driver;
 
+import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -9,7 +10,7 @@ import org.tricks.driver.json.Message;
  *
  * @author Vitor Enes
  */
-public class Socket {
+public class Socket implements Closeable {
 
     private final DataRW rw;
 
@@ -17,8 +18,8 @@ public class Socket {
         this.rw = rw;
     }
 
-    public static Socket create(Config config) throws IOException {
-        java.net.Socket socket = new java.net.Socket(config.getHost(), config.getPort());
+    public static Socket create(String ip, Integer port) throws IOException {
+        java.net.Socket socket = new java.net.Socket(ip, port);
         socket.setTcpNoDelay(true);
 
         DataInputStream in = new DataInputStream(socket.getInputStream());
@@ -32,11 +33,12 @@ public class Socket {
         this.rw.write(message);
     }
 
-    public Message receive() throws IOException {
-        return this.rw.read();
+    public <T extends Object> T receive(Class<T> classOfT) throws IOException {
+        return this.rw.read(classOfT);
     }
 
-    public void closeRw() throws IOException {
+    @Override
+    public void close() throws IOException {
         this.rw.close();
     }
 }

@@ -9,7 +9,7 @@
 - env
  * default []
  * list of two pairs {"name": x, "value": y}
- * reserved names: TAG, EXP_IP, POD_ID, POD_IP
+ * reserved names: TAG, REPLICAS, EXP_IP, POD_ID, POD_IP, TRICKS_IP, TRICKS_PORT
 - ...
 
 ) auth
