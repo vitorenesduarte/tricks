@@ -16,7 +16,7 @@ experiment:
   env:
   - name: TYPE
     value: loop
-  - name: ITERATIONS
+  - name: SECONDS
     value: 5
   workflow:
     start:
@@ -41,7 +41,7 @@ experiment:
   env:
   - name: TYPE
     value: loop
-  - name: ITERATIONS
+  - name: SECONDS
     value: 10
   workflow:
     start:

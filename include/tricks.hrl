@@ -8,7 +8,7 @@
 -type error() :: {error, term()}.
 
 %% experiment
--type exp_id() :: integer().
+-type exp_id() :: binary().
 
 %% event
 -type event_name() :: binary().
@@ -17,7 +17,7 @@
 %% pod
 -type tag() :: binary().
 -type pod_id() :: integer().
--type pod_ip() :: list().
+-type pod_ip() :: binary().
 -type pod_data() :: {pod_id(), pod_ip()}.
 
 %% http listener

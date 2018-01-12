@@ -78,6 +78,11 @@ function get_service_url {
   minikube service tricks --url 2> /dev/null
 }
 
+function build {
+  # TODO remove
+  bin/minikube-docker-build.sh
+}
+
 function start {
   ###
   # Start tricks if not found in the cluster.
@@ -157,6 +162,7 @@ function experiment {
 
 case "$1" in
   start)
+    build
     start
     ;;
   stop)

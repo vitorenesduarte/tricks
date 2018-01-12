@@ -49,7 +49,8 @@
          stop/0]).
 
 %% @doc Register an event.
-event_register(ExpId, EventName0) ->
+event_register(ExpId0, EventName0) ->
+    ExpId = tricks_util:parse_binary(ExpId0),
     EventName = tricks_util:parse_binary(EventName0),
     ok = rpc:call(get(node),
                   tricks_event_manager,
@@ -57,7 +58,8 @@ event_register(ExpId, EventName0) ->
                   [ExpId, EventName]).
 
 %% @doc Subscribe to an event.
-event_subscribe(ExpId, Event0) ->
+event_subscribe(ExpId0, Event0) ->
+    ExpId = tricks_util:parse_binary(ExpId0),
     Event = tricks_util:parse_event(Event0),
     ok = rpc:call(get(node),
                   tricks_event_manager,
@@ -71,7 +73,8 @@ event_expect(ExpId, Event) ->
 
 %% @doc Expect an event.
 %%      Fail if it does not meet expectations after `Wait' seconds.
-event_expect(ExpId, Event0, Wait) ->
+event_expect(ExpId0, Event0, Wait) ->
+    ExpId = tricks_util:parse_binary(ExpId0),
     Event = tricks_util:parse_event(Event0),
     receive
         {notification, ExpId, Event} ->
@@ -84,7 +87,8 @@ event_expect(ExpId, Event0, Wait) ->
     end.
 
 %% @doc Register a pod.
-discovery_register(ExpId, Tag0, Body) ->
+discovery_register(ExpId0, Tag0, Body) ->
+    ExpId = tricks_util:parse_binary(ExpId0),
     Tag = tricks_util:parse_binary(Tag0),
     ok = rpc:call(get(node),
                   tricks_discovery_manager,
@@ -92,7 +96,8 @@ discovery_register(ExpId, Tag0, Body) ->
                   [ExpId, Tag, Body]).
 
 %% @doc Unregister a pod.
-discovery_unregister(ExpId, Tag0, Body) ->
+discovery_unregister(ExpId0, Tag0, Body) ->
+    ExpId = tricks_util:parse_binary(ExpId0),
     Tag = tricks_util:parse_binary(Tag0),
     ok = rpc:call(get(node),
                   tricks_discovery_manager,
@@ -106,7 +111,8 @@ discovery_expect(ExpId, Tag, Ids) ->
 
 %% @doc Expect a discovery.
 %%      Fail if it does not meet expectations.
-discovery_expect(ExpId, Tag0, IdsExpected, Seconds) ->
+discovery_expect(ExpId0, Tag0, IdsExpected, Seconds) ->
+    ExpId = tricks_util:parse_binary(ExpId0),
     Tag = tricks_util:parse_binary(Tag0),
     {ok, Data} = rpc:call(get(node),
                           tricks_discovery_manager,
@@ -135,20 +141,23 @@ discovery_expect(ExpId, Tag0, IdsExpected, Seconds) ->
     end.
 
 %% @doc Register an event by driver.
-driver_event_register(ExpId, EventName0) ->
+driver_event_register(ExpId0, EventName0) ->
+    ExpId = tricks_util:parse_binary(ExpId0),
     EventName = tricks_util:parse_binary(EventName0),
     Message = tricks_driver_message:encode(ExpId, {event, EventName}),
     ok = tricks_driver_socket:send(get(socket), Message).
 
 %% @doc Subscribe to an event by driver.
-driver_event_subscribe(ExpId, Event0) ->
+driver_event_subscribe(ExpId0, Event0) ->
+    ExpId = tricks_util:parse_binary(ExpId0),
     Event = tricks_util:parse_event(Event0),
     Message = tricks_driver_message:encode(ExpId, {subscription, Event}),
     ok = tricks_driver_socket:send(get(socket), Message).
 
 %% @doc Expect an event by driver.
 %%      Fail if it does not meet expectations.
-driver_event_expect(ExpId, Event0) ->
+driver_event_expect(ExpId0, Event0) ->
+    ExpId = tricks_util:parse_binary(ExpId0),
     Event = tricks_util:parse_event(Event0),
     {ok, Bin} = tricks_driver_socket:recv(get(socket)),
 
@@ -168,7 +177,8 @@ driver_event_expect(ExpId, Event0) ->
 
 %% @doc Expect a discovery by driver.
 %%      Fail if it does not meet expectations.
-driver_discovery_expect(ExpId, Tag0, IdsExpected) ->
+driver_discovery_expect(ExpId0, Tag0, IdsExpected) ->
+    ExpId = tricks_util:parse_binary(ExpId0),
     Tag = tricks_util:parse_binary(Tag0),
 
     %% send request

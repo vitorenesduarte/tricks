@@ -5,5 +5,5 @@ experiment:
   env:
   - name: TYPE
     value: loop
-  - name: ITERATIONS
+  - name: SECONDS
     value: 0

@@ -33,17 +33,15 @@
 %% @doc Generate experiment identifier.
 -spec exp_id() -> exp_id().
 exp_id() ->
-    erlang:system_time(millisecond).
+    tricks_util:parse_binary(
+      erlang:system_time(millisecond)
+    ).
 
 %% @doc Body for Kubernetes pod creation.
--spec pod_body(integer() | binary(), integer() | binary(), maps:map()) ->
+-spec pod_body(exp_id(), integer(), maps:map()) ->
     maps:map().
-pod_body(ExpId, PodId, EntrySpec) when is_integer(ExpId) ->
-    pod_body(integer_to_binary(ExpId), PodId, EntrySpec);
-pod_body(ExpId, PodId, EntrySpec) when is_integer(PodId) ->
-    pod_body(ExpId, integer_to_binary(PodId), EntrySpec);
-pod_body(ExpId, PodId, #{tag := Tag}=EntrySpec0)
-  when is_binary(ExpId), is_binary(PodId) ->
+pod_body(ExpId, PodId0, #{tag := Tag}=EntrySpec0) ->
+    PodId = tricks_util:parse_binary(PodId0),
 
     %% create pod name
     PodName = pod_name(Tag, ExpId, PodId),
@@ -119,35 +117,44 @@ env(#{tag := Tag,
       replicas := Replicas,
       expId := ExpId,
       podId := PodId,
-      env := Env}) ->
+      env := Env0}) ->
 
     %% Get tricks driver IP and port
     TricksIp = tricks_config:get(tricks_driver_ip,
                                  "localhost"),
     TricksPort = tricks_config:get(tricks_driver_port),
 
-    [#{name => <<"TAG">>,
-       value => Tag},
-     #{name => <<"REPLICAS">>,
-       value => Replicas},
-     #{name => <<"EXP_ID">>,
-       value => ExpId},
-     #{name => <<"POD_ID">>,
-       value => PodId},
-     #{name => <<"POD_IP">>,
-       valueFrom => #{fieldRef
-                      => #{fieldPath
-                           => <<"status.podIP">>}}
-      },
-     #{name => <<"TRICKS_IP">>,
-       value => TricksIp},
-     #{name => <<"TRICKS_PORT">>,
-       value => TricksPort} | parse_env(Env)].
+    Env = [#{name => <<"TAG">>,
+             value => Tag},
+           #{name => <<"REPLICAS">>,
+             value => Replicas},
+           #{name => <<"EXP_ID">>,
+             value => ExpId},
+           #{name => <<"POD_ID">>,
+             value => PodId},
+           #{name => <<"POD_IP">>,
+             valueFrom => #{fieldRef
+                            => #{fieldPath
+                                 => <<"status.podIP">>}}
+            },
+           #{name => <<"TRICKS_IP">>,
+             value => TricksIp},
+           #{name => <<"TRICKS_PORT">>,
+             value => TricksPort} | Env0],
+    parse_env(Env).
 
 %% @private Parse env, converting integer values to binary.
 -spec parse_env(maps:map()) -> maps:map().
 parse_env([]) ->
     [];
 parse_env([H0|T]) ->
-    H = maps:map(fun(_, V) -> tricks_util:parse_binary(V) end, H0),
+    H = maps:map(
+        fun(K, V) ->
+            case K of
+                valueFrom -> V;
+                _ -> tricks_util:parse_binary(V)
+            end
+        end,
+        H0
+    ),
     [H | parse_env(T)].

@@ -62,14 +62,14 @@ init([]) ->
 %% @private
 configure() ->
     %% configure driver IP
-    configure_str("POD_IP", tricks_driver_ip),
+    configure_from_env(string, "POD_IP", tricks_driver_ip),
 
     %% select random driver port
     tricks_config:set(tricks_driver_port, random_port()),
 
     %% configure k8s api server and token
-    configure_str("K8S_API_SERVER", k8s_api_server),
-    configure_str("K8S_API_TOKEN", k8s_api_token).
+    configure_from_env(string, "K8S_API_SERVER", k8s_api_server),
+    configure_from_env(string, "K8S_API_TOKEN", k8s_api_token).
 
 %% @private
 start_driver_acceptor() ->
@@ -108,7 +108,7 @@ random_port() ->
     Port.
 
 %% @private
-configure_str(Env, Var) ->
+configure_from_env(string, Env, Var) ->
     case os:getenv(Env) of
         false ->
             ok;

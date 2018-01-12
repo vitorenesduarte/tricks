@@ -68,12 +68,12 @@ handle_event(Type, #{metadata := #{labels := Labels},
     #{expId := ExpId0,
       podId := PodId0,
       tag   := Tag} = Labels,
-    ExpId = tricks_util:parse_integer(ExpId0),
+    ExpId = tricks_util:parse_binary(ExpId0),
     PodId = tricks_util:parse_integer(PodId0),
 
     PodIp = case maps:find(podIP, Status) of
         {ok, V} ->
-            tricks_util:parse_list(V);
+            tricks_util:parse_binary(V);
         error ->
             undefined
     end,

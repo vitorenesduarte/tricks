@@ -1,18 +1,18 @@
-package org.tricks.driver;
+package org.tricks.driver.util;
 
 /**
  *
  * @author user
  */
-public class Util {
+public class Env {
 
-    public static Integer readEnvInt(String envVar) {
+    public static Integer readInteger(String envVar) {
         return Integer.parseInt(System.getenv(envVar));
     }
 
-    public static Integer readEnvInt(String envVar, Integer def) {
+    public static Integer readInteger(String envVar, Integer def) {
         Integer result = def;
-        
+
         String val = System.getenv(envVar);
         if (val != null) {
             result = Integer.parseInt(val);
@@ -21,13 +21,13 @@ public class Util {
         return result;
     }
 
-    public static String readEnvString(String envVar) {
+    public static String readString(String envVar) {
         return System.getenv(envVar);
     }
-    
-    public static String readEnvString(String envVar, String def) {
+
+    public static String readString(String envVar, String def) {
         String result = def;
-        
+
         String val = System.getenv(envVar);
         if (val != null) {
             result = val;
