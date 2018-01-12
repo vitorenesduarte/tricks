@@ -56,7 +56,7 @@ experiment:
   env:
   - name: TYPE
     value: loop
-  - name: ITERATIONS
+  - name: SECONDS 
     value: 5
   workflow:
     start:
@@ -68,7 +68,7 @@ experiment:
   env:
   - name: TYPE
     value: loop
-  - name: ITERATIONS
+  - name: SECONDS
     value: 10
   workflow:
     start:
@@ -81,7 +81,7 @@ experiment:
 
 - [examples/hello-world.yaml](examples/hello-world.yaml)
 - [examples/implicit-events.yaml](examples/implicit-events.yaml)
-- [examples/driver.yaml](examples/driver.yaml)
+- [examples/explicit-events.yaml](examples/explicit-events.yaml)
 
 # Environment variables
 

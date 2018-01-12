@@ -33,9 +33,7 @@
 %% @doc Generate experiment identifier.
 -spec exp_id() -> exp_id().
 exp_id() ->
-    tricks_util:parse_binary(
-      erlang:system_time(millisecond)
-    ).
+    tricks_util:parse_binary(erlang:system_time(millisecond)).
 
 %% @doc Body for Kubernetes pod creation.
 -spec pod_body(exp_id(), integer(), maps:map()) ->

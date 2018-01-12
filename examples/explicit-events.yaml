@@ -6,10 +6,6 @@ experiment:
   env:
   - name: TYPE
     value: event-after-discovery 
-  workflow:
-    stop:
-      name: loop_stop
-      value: 1
 - tag: loop
   image: vitorenesduarte/tricks-example
   env:
