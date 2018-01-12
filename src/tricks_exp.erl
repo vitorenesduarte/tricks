@@ -108,16 +108,28 @@ spec(#{name  := PodName,
 
 %% @private Append env vars:
 %%   - TAG
+%%   - REPLICAS
 %%   - EXP_ID
 %%   - POD_ID
 %%   - POD_IP
+%%   - TRICKS_IP
+%%   - TRICKS_PORT
 -spec env(maps:map()) -> maps:map().
 env(#{tag := Tag,
+      replicas := Replicas,
       expId := ExpId,
       podId := PodId,
       env := Env}) ->
+
+    %% Get tricks driver IP and port
+    TricksIp = tricks_config:get(tricks_driver_ip,
+                                 "localhost"),
+    TricksPort = tricks_config:get(tricks_driver_port),
+
     [#{name => <<"TAG">>,
        value => Tag},
+     #{name => <<"REPLICAS">>,
+       value => Replicas},
      #{name => <<"EXP_ID">>,
        value => ExpId},
      #{name => <<"POD_ID">>,
@@ -126,7 +138,11 @@ env(#{tag := Tag,
        valueFrom => #{fieldRef
                       => #{fieldPath
                            => <<"status.podIP">>}}
-      } | parse_env(Env)].
+      },
+     #{name => <<"TRICKS_IP">>,
+       value => TricksIp},
+     #{name => <<"TRICKS_PORT">>,
+       value => TricksPort} | parse_env(Env)].
 
 %% @private Parse env, converting integer values to binary.
 -spec parse_env(maps:map()) -> maps:map().

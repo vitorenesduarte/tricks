@@ -39,6 +39,10 @@ spec:
     image: vitorenesduarte/tricks
     imagePullPolicy: Never
     env:
+    - name: POD_IP 
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
     - name: K8S_API_SERVER
       value: "${K8S_API_SERVER}"
     - name: K8S_API_TOKEN
