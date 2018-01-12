@@ -64,8 +64,9 @@ configure() ->
     %% select random listening driver port
     tricks_config:set(driver_port, random_port()),
 
-    %% configure k8s api server
-    configure_str("K8S_API_SERVER", k8s_api_server).
+    %% configure k8s api server and token
+    configure_str("K8S_API_SERVER", k8s_api_server),
+    configure_str("K8S_API_TOKEN", k8s_api_token).
 
 %% @private
 start_driver_acceptor() ->

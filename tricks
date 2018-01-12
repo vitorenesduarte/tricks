@@ -1,9 +1,28 @@
 #!/usr/bin/env bash
 
 FILE=/tmp/.tricks.yaml
-# https://kubernetes.io/docs/tasks/administer-cluster/access-cluster-api/#accessing-the-api-from-a-pod
 HTTP_PORT=8080
-K8S_API_SERVER="kubernetes.default"
+
+function get_api_server {
+  ###
+  # Return the API server of the current context.
+  ###
+
+  kubectl config view --minify=true | grep server | awk '{ print $2 }'
+}
+
+function get_api_token {
+  ###
+  # Return the API server token of the current context.
+  ###
+
+  local _secret=$(kubectl get secrets | grep default | awk '{ print $1 }')
+  kubectl describe secret ${_secret} | grep -E "^token" | awk '{ print $2 }'
+}
+
+# https://kubernetes.io/docs/tasks/administer-cluster/access-cluster-api/#accessing-the-api-from-a-pod
+K8S_API_SERVER=$(get_api_server)
+K8S_API_TOKEN=$(get_api_token)
 
 ## create deployment file
 cat <<EOF > ${FILE}
@@ -22,6 +41,8 @@ spec:
     env:
     - name: K8S_API_SERVER
       value: "${K8S_API_SERVER}"
+    - name: K8S_API_TOKEN
+      value: "${K8S_API_TOKEN}"
 EOF
 
 function get_pod_status {

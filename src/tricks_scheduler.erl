@@ -63,7 +63,18 @@ init([]) ->
     %% if API server not defined,
     %% use `kubectl proxy` default endpoint
     Host = tricks_config:get(k8s_api_server, "localhost:8001"),
-    Cfg = kuberl:cfg_with_host(Host),
+    Token = tricks_config:get(k8s_api_token, undefined),
+
+    Cfg0 = kuberl:cfg_with_host(Host),
+    Cfg = case Token of
+        undefined ->
+            %% if undefined, keep cfg map
+            Cfg0;
+        _ ->
+            %% otherwise update it token
+            kuberl:cfg_with_bearer_token(Cfg0,
+                                         tricks_util:parse_binary(Token))
+    end,
 
     {ok, #state{kuberl_cfg=Cfg,
                 schedule=dict:new()}}.
