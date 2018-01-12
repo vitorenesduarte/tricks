@@ -37,6 +37,7 @@
                  | {subscription, event()}
                  | {notification, event()}
                  | {discovery, tag()}
+                 | {discovery, {tag(), integer()}}
                  | {pods, {tag(), [pod_data()]}}.
 
 %% @doc Decode message.
@@ -64,6 +65,9 @@ encode_payload({subscription, {EventName, Value}}) ->
 encode_payload({notification, {EventName, Value}}) ->
     #{eventName => EventName,
       value => Value};
+encode_payload({discovery, {Tag, Min}}) ->
+    #{tag => Tag,
+      min => Min};
 encode_payload({discovery, Tag}) ->
     #{tag => Tag};
 encode_payload({pods, {Tag, PodsData}}) ->
@@ -113,10 +117,14 @@ notification_test() ->
 discovery_test() ->
     ExpId = 17,
     Tag = <<"server">>,
-    Expected = #{expId => ExpId,
-                 type => <<"discovery">>,
-                 tag => Tag},
-    ?assertEqual(Expected, decode(encode(ExpId, {discovery, Tag}))).
+    Min = 10,
+    Expected1 = #{expId => ExpId,
+                  type => <<"discovery">>,
+                  tag => Tag},
+    ?assertEqual(Expected1, decode(encode(ExpId, {discovery, Tag}))),
+
+    Expected2 = Expected1#{min => Min},
+    ?assertEqual(Expected2, decode(encode(ExpId, {discovery, {Tag, Min}}))).
 
 pods_test() ->
     ExpId = 17,

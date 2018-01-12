@@ -153,9 +153,17 @@ or with __[TD]__ otherwise).
 {
   "expId": "123456",
   "type": "discovery",
-  "tag": "server"
+  "tag": "server",
+  "min": 2
 }
 ```
+
+The argument `min` is optional. If not defined,
+Tricks will reply right away with a list
+of pods respecting the other arguments.
+Otherwise, it will only reply when
+it has at least `min` pods
+(sending all, even if more than `min`).
 
 - [x] Pod discovery __[TD]__
 ```json
