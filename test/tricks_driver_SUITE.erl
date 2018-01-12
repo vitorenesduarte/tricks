@@ -18,7 +18,7 @@
 %%
 %% -------------------------------------------------------------------
 
--module(tricks_client_SUITE).
+-module(tricks_driver_SUITE).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
 -include("tricks.hrl").
@@ -52,7 +52,7 @@ init_per_testcase(Case, Config) ->
     ok = test_util:start(),
 
     %% connect to tricks
-    ok = test_util:client_connect(),
+    ok = test_util:driver_connect(),
 
     Config.
 
@@ -60,7 +60,7 @@ end_per_testcase(Case, Config) ->
     ct:pal("Ending test case: ~p", [Case]),
 
     %% disconnect from tricks
-    ok = test_util:client_disconnect(),
+    ok = test_util:driver_disconnect(),
 
     %% stop
     ok = test_util:stop(),
@@ -81,42 +81,42 @@ register_event_test(_Config) ->
     test_util:event_subscribe(17, {event, 1}),
     test_util:event_subscribe(17, {event, 2}),
 
-    %% register an event using the client
-    test_util:client_event_register(17, event),
+    %% register an event using the driver
+    test_util:driver_event_register(17, event),
     test_util:event_expect(17, {event, 1}),
     
     %% register another event
-    test_util:client_event_register(17, event),
+    test_util:driver_event_register(17, event),
     test_util:event_expect(17, {event, 2}).
 
 subscribe_event_test(_Config) ->
-    %% subscribe to an event using the client
-    test_util:client_event_subscribe(17, {event, 1}),
-    test_util:client_event_subscribe(17, {event, 2}),
+    %% subscribe to an event using the driver
+    test_util:driver_event_subscribe(17, {event, 1}),
+    test_util:driver_event_subscribe(17, {event, 2}),
 
     %% register an event
     test_util:event_register(17, event),
-    test_util:client_event_expect(17, {event, 1}),
+    test_util:driver_event_expect(17, {event, 1}),
     
     %% register another event
     test_util:event_register(17, event),
-    test_util:client_event_expect(17, {event, 2}).
+    test_util:driver_event_expect(17, {event, 2}).
 
 discovery_test(_Config) ->
     %%  expect nothing
-    test_util:client_discovery_expect(17, server, []),
+    test_util:driver_discovery_expect(17, server, []),
 
     %% register and expect
     test_util:discovery_register(17, server, {1, "127.0.0.1"}),
-    test_util:client_discovery_expect(17, server, [1]),
+    test_util:driver_discovery_expect(17, server, [1]),
 
     %% register and expect
     test_util:discovery_register(18, client, {2, "127.0.0.2"}),
-    test_util:client_discovery_expect(18, client, [2]),
+    test_util:driver_discovery_expect(18, client, [2]),
     test_util:discovery_register(18, client, {1, "127.0.0.12"}),
-    test_util:client_discovery_expect(18, client, [1, 2]),
+    test_util:driver_discovery_expect(18, client, [1, 2]),
 
     %% unregister and expect
     test_util:discovery_unregister(18, client, {1, "127.0.0.12"}),
-    test_util:client_discovery_expect(18, client, [2]),
-    test_util:client_discovery_expect(17, server, [1]).
+    test_util:driver_discovery_expect(18, client, [2]),
+    test_util:driver_discovery_expect(17, server, [1]).

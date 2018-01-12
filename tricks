@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 FILE=/tmp/.tricks.yaml
-PORT=8817
+# https://kubernetes.io/docs/tasks/administer-cluster/access-cluster-api/#accessing-the-api-from-a-pod
+HTTP_PORT=8080
+K8S_API_SERVER="kubernetes.default"
 
 ## create deployment file
 cat <<EOF > ${FILE}
@@ -16,61 +18,127 @@ spec:
   containers:
   - name: tricks
     image: vitorenesduarte/tricks
-    imagePullPolicy: Always
+    imagePullPolicy: Never
     env:
-    - name: PORT
-      value: "${PORT}"
+    - name: K8S_API_SERVER
+      value: "${K8S_API_SERVER}"
 EOF
 
-function is_running {
-  kubectl get -f ${FILE} 2>&1 | grep Running
+function get_pod_status {
+  ###
+  # Returns one of:
+  #  - Running
+  #  - Terminating
+  #  - NotFound
+  ###
+
+  kubectl get -f ${FILE} 2>&1 | grep -oE "(Running|Terminating|NotFound)"
 }
 
-function get_ip {
+function get_service_status {
+  ###
+  # Returns one of:
+  #  - NotFound
+  ###
+
+  kubectl get service tricks 2>&1 | grep -oE "(NotFound)"
+}
+
+function get_service_url {
+  ###
+  # Return tricks service http endpoint.
+  ###
+
   # TODO check if context is minikube
-  minikube service tricks --url
+  minikube service tricks --url 2> /dev/null
 }
 
 function start {
-  local _running=$(is_running)
-  local _ip=$(get_ip)
+  ###
+  # Start tricks if not found in the cluster.
+  # If in the cluster, it is assumed it is
+  # configured correclty.
+  ###
+  local _status=$(get_pod_status)
+  local _url=$(get_service_url)
 
-  if [ -z "${_running}" ]; then
+  if [ "${_status}" == "NotFound" ]; then
     echo "Starting Tricks..."
     kubectl create -f ${FILE}
-    kubectl expose pod tricks --type=NodePort --port=${PORT}
+    kubectl expose pod tricks --type=NodePort --port=${HTTP_PORT}
 
     echo "Configuring Tricks..."
-    while [ -z "${_ip}" ]; do
-      _ip=$(get_ip)
+    while [ -z "${_url}" ]; do
+      _url=$(get_service_url)
       sleep 1
     done
 
     echo "Tricks configured correctly!"
 
   else
-    if [ -z "${_ip}" ]; then
+    if [ -z "${_url}" ]; then
       echo "Tricks is running, but not configured correctly!"
     fi
   fi
 }
 
+function stop {
+  ###
+  # Loop while tricks pod exists.
+  # Loop while tricks service exists.
+  ###
+  local _pod_status=$(get_pod_status)
+  local _service_status=$(get_service_status)
+
+  while [ "${_pod_status}" != "NotFound" ]; do
+    sleep 1
+    kubectl delete -f ${FILE} --now > /dev/null 2>&1
+    _pod_status=$(get_pod_status)
+  done
+
+  while [ "${_service_status}" != "NotFound" ]; do
+    sleep 1
+    kubectl delete service tricks > /dev/null 2>&1
+    _service_status=$(get_service_status)
+  done
+}
+
+function logs {
+  ###
+  # Tail the logs forever.
+  ###
+
+  kubectl logs -f tricks
+}
+
 function experiment {
   local _yaml=$1
   local _json=/tmp/exp.json
+  local _url=$(get_service_url)
+  local _endpoint=${_url}/exp
 
   if [ ! -f ${_yaml} ]; then
     echo "File ${_yaml} not found!"
     exit 1
   fi
 
-  python -c 'import sys, yaml, json; json.dump(yaml.load(sys.stdin), sys.stdout, indent=4)' < ${_yaml} > ${_json}
-  cat ${_json}
+  # convert yaml user file to json
+  local _cmd="import sys, yaml, json; json.dump(yaml.load(sys.stdin), sys.stdout, indent=4)"
+  python -c "${_cmd}" < ${_yaml} > ${_json}
+
+  # post json in service endpoint
+  curl -H "Content-Type: application/json" -X POST -d @"${_json}" ${_endpoint}
 }
 
 case "$1" in
   start)
     start
+    ;;
+  stop)
+    stop
+    ;;
+  logs)
+    logs
     ;;
   exp)
     if [ $# -ne 2 ]; then

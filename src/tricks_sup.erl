@@ -42,8 +42,11 @@ init([]) ->
     %% configure
     configure(),
 
-    %% start clients tcp acceptor
-    start_client_acceptor(),
+    %% start driver tcp acceptor
+    start_driver_acceptor(),
+
+    %% start http dispatch
+    start_http_dispatch(),
 
     %% start app, scheduler, event manager,
     %% discovery manager
@@ -58,28 +61,53 @@ init([]) ->
 
 %% @private
 configure() ->
-    %% select random listening client port
-    tricks_config:set(port, random_port()).
+    %% select random listening driver port
+    tricks_config:set(driver_port, random_port()),
+
+    %% configure k8s api server
+    configure_str("K8S_API_SERVER", k8s_api_server).
 
 %% @private
-start_client_acceptor() ->
-    Listener = tricks_client_listener,
+start_driver_acceptor() ->
+    Listener = tricks_driver_listener,
     Transport = ranch_tcp,
     %% TODO make this configurable
-    Options = [{port, tricks_config:get(port)},
+    Options = [{port, tricks_config:get(driver_port)},
                {max_connections, 1024},
                {num_acceptors, 1}],
-    ClientHandler = tricks_client_handler,
+    DriverHandler = tricks_driver_handler,
 
     {ok, _} = ranch:start_listener(Listener,
                                    Transport,
                                    Options,
-                                   ClientHandler,
+                                   DriverHandler,
                                    []).
 
-%% @private From partisan.
+%% @private
+start_http_dispatch() ->
+    Dispatch = cowboy_router:compile([
+        {'_', [
+            {"/exp", tricks_http_exp_handler, []}
+        ]}
+    ]),
+    {ok, _} = cowboy:start_clear(
+        http,
+        ?WEB_CONFIG,
+        #{env => #{dispatch => Dispatch}}
+    ).
+
+%% @private From partisan code.
 random_port() ->
     {ok, Socket} = gen_tcp:listen(0, []),
     {ok, {_, Port}} = inet:sockname(Socket),
     ok = gen_tcp:close(Socket),
     Port.
+
+%% @private
+configure_str(Env, Var) ->
+    case os:getenv(Env) of
+        false ->
+            ok;
+        Value ->
+            tricks_config:set(Var, Value)
+    end.

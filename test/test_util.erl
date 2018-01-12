@@ -37,13 +37,14 @@
          discovery_unregister/3,
          discovery_expect/3,
          discovery_expect/4,
-         client_event_register/2,
-         client_event_subscribe/2,
-         client_event_expect/2,
-         client_discovery_expect/3,
-         client_connect/0,
-         client_disconnect/0,
+         driver_event_register/2,
+         driver_event_subscribe/2,
+         driver_event_expect/2,
+         driver_discovery_expect/3,
+         driver_connect/0,
+         driver_disconnect/0,
          example_run/1,
+         http_example_run/1,
          start/0,
          stop/0]).
 
@@ -133,28 +134,28 @@ discovery_expect(ExpId, Tag0, IdsExpected, Seconds) ->
             end
     end.
 
-%% @doc Register an event by client.
-client_event_register(ExpId, EventName0) ->
+%% @doc Register an event by driver.
+driver_event_register(ExpId, EventName0) ->
     EventName = tricks_util:parse_binary(EventName0),
-    Message = tricks_client_message:encode(ExpId, {event, EventName}),
-    ok = tricks_client_socket:send(get(socket), Message).
+    Message = tricks_driver_message:encode(ExpId, {event, EventName}),
+    ok = tricks_driver_socket:send(get(socket), Message).
 
-%% @doc Subscribe to an event by client.
-client_event_subscribe(ExpId, Event0) ->
+%% @doc Subscribe to an event by driver.
+driver_event_subscribe(ExpId, Event0) ->
     Event = tricks_util:parse_event(Event0),
-    Message = tricks_client_message:encode(ExpId, {subscription, Event}),
-    ok = tricks_client_socket:send(get(socket), Message).
+    Message = tricks_driver_message:encode(ExpId, {subscription, Event}),
+    ok = tricks_driver_socket:send(get(socket), Message).
 
-%% @doc Expect an event by client.
+%% @doc Expect an event by driver.
 %%      Fail if it does not meet expectations.
-client_event_expect(ExpId, Event0) ->
+driver_event_expect(ExpId, Event0) ->
     Event = tricks_util:parse_event(Event0),
-    {ok, Bin} = tricks_client_socket:recv(get(socket)),
+    {ok, Bin} = tricks_driver_socket:recv(get(socket)),
 
     #{expId := MExpId,
       type := <<"notification">>,
       eventName := MEventName,
-      value := MValue} = tricks_client_message:decode(Bin),
+      value := MValue} = tricks_driver_message:decode(Bin),
     MEvent = {MEventName, MValue},
 
     case ExpId == MExpId andalso
@@ -165,22 +166,22 @@ client_event_expect(ExpId, Event0) ->
             ct:fail("Wrong event [~p] ~p", [MExpId, MEvent])
     end.
 
-%% @doc Expect a discovery by client.
+%% @doc Expect a discovery by driver.
 %%      Fail if it does not meet expectations.
-client_discovery_expect(ExpId, Tag0, IdsExpected) ->
+driver_discovery_expect(ExpId, Tag0, IdsExpected) ->
     Tag = tricks_util:parse_binary(Tag0),
 
     %% send request
-    Message = tricks_client_message:encode(ExpId, {discovery, Tag}),
-    ok = tricks_client_socket:send(get(socket), Message),
+    Message = tricks_driver_message:encode(ExpId, {discovery, Tag}),
+    ok = tricks_driver_socket:send(get(socket), Message),
 
     %% receive reply
-    {ok, Bin} = tricks_client_socket:recv(get(socket)),
+    {ok, Bin} = tricks_driver_socket:recv(get(socket)),
 
     #{expId := MExpId,
       type := <<"pods">>,
       tag := MTag,
-      pods := Data} = tricks_client_message:decode(Bin),
+      pods := Data} = tricks_driver_message:decode(Bin),
 
     %% extract ids from pod data
     Ids = [Id || #{id := Id,
@@ -196,19 +197,19 @@ client_discovery_expect(ExpId, Tag0, IdsExpected) ->
     end.
 
 %% @doc Connect to tricks.
-client_connect() ->
+driver_connect() ->
     Port = rpc:call(get(node),
                     tricks_config,
                     get,
-                    [port]),
-    {ok, Socket} = tricks_client_socket:connect(?LOCALHOST, Port),
-    ok = tricks_client_socket:configure(Socket),
+                    [driver_port]),
+    {ok, Socket} = tricks_driver_socket:connect(?LOCALHOST, Port),
+    ok = tricks_driver_socket:configure(Socket),
     put(socket, Socket),
     ok.
 
 %% @doc Disconnect from tricks.
-client_disconnect() ->
-    ok = tricks_client_socket:disconnect(get(socket)).
+driver_disconnect() ->
+    ok = tricks_driver_socket:disconnect(get(socket)).
 
 %% @doc Run an example.
 example_run(Name) ->
@@ -216,6 +217,28 @@ example_run(Name) ->
                            tricks_example,
                            run,
                            [home_dir(), Name]),
+    ExpId.
+
+%% @doc Run an example with an http call.
+http_example_run(Name) ->
+    %% preprare hackney request
+    Method = get,
+    Url = <<"localhost:8080/exp">>,
+    Headers = [],
+    Payload = rpc:call(get(node),
+                       tricks_example,
+                       get_file_binary,
+                       [home_dir(), Name]),
+    Options = [with_body],
+
+    %% TODO add hackney as dep for tests
+    %% and avoid rpc:call
+    Args = [Method, Url, Headers, Payload, Options],
+    {ok, 200, _RespHeaders, ResponseBody} = rpc:call(get(node),
+                                                     hackney,
+                                                     request,
+                                                     Args),
+    #{expId := ExpId} = tricks_util:parse_json(ResponseBody),
     ExpId.
 
 %% @doc Start app.

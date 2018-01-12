@@ -1,6 +1,6 @@
 %% -------------------------------------------------------------------
 %%
-%% Copyright (c) 2018 Vitor Enes. All Rights Reserved.
+%% Copyright (c) 2018 Vitor Enes.  All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -18,23 +18,22 @@
 %%
 %% -------------------------------------------------------------------
 
--module(tricks_example).
+
+-module(tricks_http_exp_handler).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
 -include("tricks.hrl").
 
-%% API
--export([get_file_binary/2,
-         run/2]).
+%% cowboy callback
+-export([init/2]).
 
--spec get_file_binary(string(), string()) -> binary().
-get_file_binary(Dir, Name) ->
-    File = Dir ++ "/examples/json/" ++ Name ++ ".json",
-    {ok, Bin} = file:read_file(File),
-    Bin.
-
--spec run(string(), string()) -> {ok, exp_id()}.
-run(Dir, Name) ->
-    Bin = get_file_binary(Dir, Name),
-    Exp = tricks_util:parse_json(Bin),
-    tricks:run(Exp).
+init(Req0, Opts) ->
+    {ok, Body, _} = cowboy_req:read_body(Req0),
+    Exp = tricks_util:parse_json(Body),
+    {ok, ExpId} = tricks:run(Exp),
+    Reply = tricks_util:compose_json(#{expId => ExpId}),
+    Req = cowboy_req:reply(200,
+                           #{<<"Content-Type">> => <<"application/json">>},
+                           Reply,
+                           Req0),
+    {ok, Req, Opts}.

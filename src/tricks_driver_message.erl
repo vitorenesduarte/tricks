@@ -18,9 +18,9 @@
 %%
 %% -------------------------------------------------------------------
 
-%% @doc Client socket message encoding.
+%% @doc Driver socket message encoding/decoding.
 
--module(tricks_client_message).
+-module(tricks_driver_message).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
 -include("tricks.hrl").

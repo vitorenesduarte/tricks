@@ -9,8 +9,10 @@
     crypto,
     inets,
     lager,
+    jsx,
     kuberl,
-    ranch]},
+    ranch,
+    cowboy]},
   {env,[]},
   {modules, []},
 

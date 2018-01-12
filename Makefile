@@ -44,11 +44,8 @@ shell:
 	${REBAR} shell --apps ${PACKAGE}
 
 rel:
-	rm -rf _build/defaul/rel
+	rm -rf _build/default/rel/
 	${REBAR} release
-
-docker-rel: rel
-	docker build -t vitorenesduarte/${PACKAGE} .
 
 logs:
 	tail -F .lager/*/log/*.log
