@@ -83,6 +83,20 @@ experiment:
 - [examples/implicit-events.yaml](examples/implicit-events.yaml)
 - [examples/explicit-events.yaml](examples/explicit-events.yaml)
 
+### Running Tricks
+
+Assuming there's a Kubernetes cluster running:
+
+```bash
+$ tricks start
+$ tricks logs
+```
+
+And then in another terminal, run one of the examples:
+```bash
+$ tricks exp examples/explicit-events.yaml
+```
+
 # Environment variables
 
 Configuration of pods is achieved through environment variables.
