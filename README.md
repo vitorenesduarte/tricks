@@ -19,6 +19,7 @@ An experiment is one or more TE's.
   - can be used to implement synchronization barrier
     (e.g. make sure all clients start at the same time)
 - [x] Workflow (e.g. only start a given TE once event X counter is Y)
+- [ ] Sequences of experiments
 - [x] Pod discovery
 - [ ] Log aggregation
 - [ ] Plotting from logs (e.g. latency/throughput, CDF, bar, line)
@@ -83,7 +84,7 @@ experiment:
 - [examples/implicit-events.yaml](examples/implicit-events.yaml)
 - [examples/explicit-events.yaml](examples/explicit-events.yaml)
 
-### Running Tricks
+# Running Tricks
 
 Assuming there's a Kubernetes cluster running:
 
@@ -186,4 +187,62 @@ it has at least `min` pods
     }
   ]
 }
+```
+
+# Sequences of experiments
+
+Typically we want, not to run a single experiment,
+but several, and in the end compare metrics
+collected.
+
+In order to support sequences of experiments,
+configuration values in the YAML file
+can be replaced by variables
+(e.g. `$var`),
+that are defined in a list of
+configurations.
+Each configuration will be used
+to create an experiment.
+
+An example from [examples/sequences.yaml](examples/sequences.yaml)
+with two variables (`$op_number` and `$client_number`)
+that 
+are used to define number of replicas,
+workflow configuration and
+environment variables:
+
+```bash
+apiVersion: v1
+config:
+  - $op_number: 100
+    $client_number: 3
+  - $op_number: 200
+    $client_number: 3
+  - $op_number: 100
+    $client_number: 6
+  - $op_number: 200
+    $client_number: 6
+experiment:
+  - tag: server
+    image: vitorenesduarte/tricks-example
+    replicas: 3
+    env:
+    - name: TYPE
+      value: server
+    workflow:
+      stop:
+        name: client_stop
+        value: $client_number
+  - tag: client
+    image: vitorenesduarte/tricks-example
+    replicas: $client_number
+    env:
+    - name: TYPE
+      value: client
+    - name: OP_NUMBER
+      value: $op_number
+    workflow:
+      start:
+        name: server_start
+        value: 3
 ```

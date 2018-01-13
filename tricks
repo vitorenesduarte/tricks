@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 FILE=/tmp/.tricks.yaml
 HTTP_PORT=8080
 
@@ -140,7 +139,13 @@ function experiment {
   python -c "${_cmd}" < ${_yaml} > ${_json}
 
   # post json in service endpoint
-  curl -H "Content-Type: application/json" -X POST -d @"${_json}" ${_endpoint}
+  local _reply
+  local _id
+  _cmd="import sys, json; print json.load(sys.stdin)['expId']"
+  _reply=$(curl -s -H "Content-Type: application/json" -X POST -d @"${_json}" ${_endpoint})
+  _id=$(echo ${_reply} | python -c "${_cmd}")
+  echo "Experiment identifier: ${_id}"
+  watch kubectl get pods -l expId=${_id}
 }
 
 case "$1" in

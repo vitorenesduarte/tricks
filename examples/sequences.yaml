@@ -1,0 +1,33 @@
+apiVersion: v1
+config:
+  - $op_number: 100
+    $client_number: 3
+  - $op_number: 200
+    $client_number: 3
+  - $op_number: 100
+    $client_number: 6
+  - $op_number: 200
+    $client_number: 6
+experiment:
+  - tag: server
+    image: vitorenesduarte/tricks-example
+    replicas: 3
+    env:
+    - name: TYPE
+      value: server
+    workflow:
+      stop:
+        name: client_stop
+        value: $client_number
+  - tag: client
+    image: vitorenesduarte/tricks-example
+    replicas: $client_number
+    env:
+    - name: TYPE
+      value: client
+    - name: OP_NUMBER
+      value: $op_number
+    workflow:
+      start:
+        name: server_start
+        value: 3
