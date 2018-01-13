@@ -96,7 +96,8 @@ handle_message(Bin, Socket) ->
         <<"discovery">> ->
             %% discover and reply
             #{tag := Tag} = Message,
-            {ok, Data} = tricks_discovery_manager:discover(ExpId, Tag),
+            Min = maps:get(min, Message, 0),
+            {ok, Data} = tricks_discovery_manager:discover(ExpId, Tag, Min),
             Reply = tricks_driver_message:encode(ExpId, {pods, {Tag, Data}}),
             tricks_driver_socket:send(Socket, Reply)
     end,

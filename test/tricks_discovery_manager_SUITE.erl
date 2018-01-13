@@ -145,12 +145,9 @@ nada_test(_Config) ->
 
     %% start app1
     test_util:event_register(ExpId, go1),
-    test_util:discovery_expect(ExpId, app1, [1], 120),
+    test_util:discovery_expect(ExpId, app1, 1, [1]),
     test_util:discovery_expect(ExpId, app2, []),
 
     %% start app2
     test_util:event_register(ExpId, go2),
-    test_util:discovery_expect(ExpId, app2, [1, 2, 3], 120),
-    
-    %% app1 should stop soon
-    test_util:discovery_expect(ExpId, app1, [], 120).
+    test_util:discovery_expect(ExpId, app2, 3, [1, 2, 3]).

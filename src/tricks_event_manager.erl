@@ -78,8 +78,8 @@ handle_call({subscribe, ExpId, {EventName, Value}=Event , Pid}, _From,
     lager:info("Subscription [~p] ~p", [ExpId, Event]),
 
     D0 = tricks_util:dict_find(ExpId, ETD0, ?EMPTY_EXP_DATA),
-    #{subs := Subs0,
-      events := Events} = D0,
+    #{events := Events,
+      subs := Subs0} = D0,
 
     Current = tricks_util:dict_find(EventName, Events, 0),
     Subs1 = case Current >= Value of
@@ -103,8 +103,8 @@ handle_cast({register, ExpId, EventName}, #state{exp_to_data=ETD0}=State) ->
     lager:info("Event [~p] ~p", [ExpId, EventName]),
 
     D0 = tricks_util:dict_find(ExpId, ETD0, ?EMPTY_EXP_DATA),
-    #{subs := Subs,
-      events := Events0} = D0,
+    #{events := Events0,
+      subs := Subs} = D0,
 
     Events1 = dict:update_counter(EventName, 1, Events0),
     Value = dict:fetch(EventName, Events1),
