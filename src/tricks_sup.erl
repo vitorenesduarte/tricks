@@ -53,7 +53,8 @@ init([]) ->
     Actors = [?APP,
               tricks_scheduler,
               tricks_event_manager,
-              tricks_discovery_manager],
+              tricks_discovery_manager,
+              tricks_watch_stopper],
     Children = [?CHILD(A) || A <- Actors],
 
     RestartStrategy = {one_for_one, 10, 10},
