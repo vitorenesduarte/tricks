@@ -246,12 +246,18 @@ http_example_run(Name) ->
 start() ->
     start_erlang_distribution(),
 
-    Config = [{monitor_master, true},
-              {boot_timeout, 10},
-              {startup_functions, [{code, set_path, [codepath()]}]}],
+    %% Add env vars to slave opts
+    Vars = ["K8S_API_SERVER",
+            "K8S_API_TOKEN"],
+    Env = [{Var, os:getenv(Var)} || Var <- Vars],
+
+    Opts = [{monitor_master, true},
+            {boot_timeout, 10},
+            {startup_functions, [{code, set_path, [codepath()]}]},
+            {env, Env}],
 
     %% start node
-    Node = case ct_slave:start(?APP, Config) of
+    Node = case ct_slave:start(?APP, Opts) of
         {ok, N} ->
             N;
         Error ->

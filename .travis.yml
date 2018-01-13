@@ -22,8 +22,6 @@ before_script:
   - minikube update-context
   # Wait for Kubernetes to be up and ready.
   - JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'; until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done
-  # proxy minikube
-  - kubectl proxy 2> /dev/null &
   # get rebar3
   - wget https://s3.amazonaws.com/rebar3-nightly/rebar3
   - chmod +x rebar3

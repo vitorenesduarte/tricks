@@ -26,7 +26,10 @@ eunit:
 	${REBAR} eunit
 
 ct: clear
-	TRICKS_HOME=${HOME} ${REBAR} ct --readable=false --verbose
+	TRICKS_HOME=${HOME} \
+		K8S_API_SERVER=$(shell bin/k8s_api_server.sh) \
+		K8S_API_TOKEN=$(shell bin/k8s_api_token.sh) \
+		${REBAR} ct --readable=false --verbose
 
 cover: test
 	open _build/test/cover/index.html
