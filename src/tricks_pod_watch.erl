@@ -85,13 +85,10 @@ handle_event(Type, #{metadata := #{labels := Labels},
     %% register discovery
     State2 = register_discovery(ExpId, Tag, Data, Diff, State1),
 
-    %% if pod is stopped,
-    %% TODO stop watching
+    %% if pod is stopped, stop watching
     case State2 of
         #state{current=?STOPPED} ->
-            %WatchPid = self(),
-            %spawn(fun() -> gen_statem:stop(WatchPid) end);
-            ok;
+            tricks_watch_stopper:stop(self());
         _ ->
             ok
     end,
