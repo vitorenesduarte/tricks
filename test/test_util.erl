@@ -108,18 +108,18 @@ discovery_unregister(ExpId0, Tag0, PodData0) ->
 
 %% @doc Expect a discovery.
 %%      Fail if it does not meet expectations.
-discovery_expect(ExpId, Tag, Ids) ->
-    discovery_expect(ExpId, Tag, Ids, 0).
+discovery_expect(ExpId, Tag, IdsExpected) ->
+    discovery_expect(ExpId, Tag, 0, IdsExpected).
 
 %% @doc Expect a discovery.
 %%      Fail if it does not meet expectations.
-discovery_expect(ExpId0, Tag0, IdsExpected, Seconds) ->
+discovery_expect(ExpId0, Tag0, Min, IdsExpected) ->
     ExpId = tricks_util:parse_binary(ExpId0),
     Tag = tricks_util:parse_binary(Tag0),
     {ok, Data} = rpc:call(get(node),
                           tricks_discovery_manager,
                           discover,
-                          [ExpId, Tag]),
+                          [ExpId, Tag, Min]),
 
     %% extract ids from pod data
     Ids = [Id || {Id, _Ip} <- Data],
@@ -128,18 +128,7 @@ discovery_expect(ExpId0, Tag0, IdsExpected, Seconds) ->
         true ->
             ok;
         false ->
-            case Seconds of
-                0 ->
-                    ct:fail("Wrong discovery [~p] ~p",
-                            [ExpId, Ids]);
-                _ ->
-                    %% wait 1 second and try again
-                    timer:sleep(1000),
-                    discovery_expect(ExpId,
-                                     Tag,
-                                     IdsExpected,
-                                     Seconds - 1)
-            end
+            ct:fail("Wrong discovery [~p] ~p", [ExpId, Ids])
     end.
 
 %% @doc Register an event by driver.

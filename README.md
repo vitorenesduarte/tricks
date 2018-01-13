@@ -158,10 +158,10 @@ or with __[TD]__ otherwise).
 }
 ```
 
-The argument `min` is optional. If not defined,
-Tricks will reply right away with a list
-of pods respecting the other arguments.
-Otherwise, it will only reply when
+The argument `min` in the previous
+message is optional
+(default value is 0).
+Tricks will only reply when
 it has at least `min` pods
 (sending all, even if more than `min`).
 

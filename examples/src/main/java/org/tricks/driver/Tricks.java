@@ -48,16 +48,21 @@ public class Tricks {
         assert (notification.getValue().equals(value));
     }
 
-    public List<Pod> discover() throws IOException {
-        return discover(config.getTag());
-    }
-
     public List<Pod> discover(String tag) throws IOException {
         Discovery discovery = new Discovery(config.getExpId(), tag);
+        return discover(discovery);
+    }
+
+    public List<Pod> discover(String tag, Integer min) throws IOException {
+        Discovery discovery = new Discovery(config.getExpId(), tag, min);
+        return discover(discovery);
+    }
+
+    private List<Pod> discover(Discovery discovery) throws IOException {
         socket.send(discovery);
 
         Pods pods = socket.receive(Pods.class);
-        assert (pods.getTag().equals(tag));
+        assert (pods.getTag().equals(discovery.getTag()));
         return pods.getPods();
     }
 }

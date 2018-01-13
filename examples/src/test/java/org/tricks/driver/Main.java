@@ -1,8 +1,6 @@
 package org.tricks.driver;
 
 import java.io.IOException;
-import java.util.List;
-import org.tricks.driver.json.Pod;
 import org.tricks.driver.util.Env;
 
 /**
@@ -37,18 +35,10 @@ public class Main {
 
     private static void eventAfterDiscovery() throws IOException, InterruptedException {
         Tricks tricks = Tricks.init();
+        String tag = tricks.getConfig().getTag();
         Integer replicaNumber = tricks.getConfig().getReplicas();
 
-        Boolean all = false;
-        while (!all) {
-            List<Pod> pods = tricks.discover();
-            if (pods.size() == replicaNumber) {
-                all = true;
-            } else {
-                Thread.sleep(100);
-            }
-        }
-
+        tricks.discover(tag, replicaNumber);
         tricks.registerEvent("discovered");
     }
 }
