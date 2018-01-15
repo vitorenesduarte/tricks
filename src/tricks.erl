@@ -74,7 +74,7 @@ do_run(Experiment) ->
                                                EntrySpec),
 
                     %% schedule pod
-                    tricks_scheduler:schedule_pod(ExpId, Body, Start, End)
+                    tricks_pod_scheduler:schedule_pod(ExpId, Body, Start, End)
                 end,
                 lists:seq(1, Replicas)
             )

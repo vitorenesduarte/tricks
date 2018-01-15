@@ -48,10 +48,10 @@ init([]) ->
     %% start http dispatch
     start_http_dispatch(),
 
-    %% start app, scheduler, event manager,
+    %% start app, pod scheduler, event manager,
     %% discovery manager
     Actors = [?APP,
-              tricks_scheduler,
+              tricks_pod_scheduler,
               tricks_event_manager,
               tricks_discovery_manager,
               tricks_watch_stopper],

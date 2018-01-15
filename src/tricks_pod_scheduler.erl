@@ -18,7 +18,7 @@
 %%
 %% -------------------------------------------------------------------
 
--module(tricks_scheduler).
+-module(tricks_pod_scheduler).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
 -include("tricks.hrl").
