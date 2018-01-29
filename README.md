@@ -204,7 +204,7 @@ configurations.
 Each configuration will be used
 to create an experiment.
 
-An example from [examples/sequences.yaml](examples/sequences.yaml)
+An example
 with two variables (`$op_number` and `$client_number`)
 that 
 are used to define number of replicas,
