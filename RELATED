@@ -24,5 +24,8 @@ http://www.cs.utexas.edu/~vijay/papers/sosp17-pebblesdb.pdf
 - detect coordination omission
 https://bravenewgeek.com/everything-you-know-about-latency-is-wrong/
 
+- detect simpson's paradox
+https://blog.acolyer.org/2018/02/21/can-you-trust-the-trend-discovering-simpsons-paradoxes-in-social-data/amp/
+
 - fault injection
 https://github.com/gaia-adm/pumba
