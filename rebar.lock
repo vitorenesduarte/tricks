@@ -10,7 +10,7 @@
  {<<"jsx">>,{pkg,<<"jsx">>,<<"2.9.0">>},1},
  {<<"kuberl">>,
   {git,"https://github.com/tsloughter/kuberl",
-       {ref,"bffbc7ec7239e259c0859f1bc2d4e540effbf496"}},
+       {ref,"24ee3c368ddc43d50cfcf915c152e7732cebc163"}},
   0},
  {<<"lager">>,{pkg,<<"lager">>,<<"3.5.2">>},0},
  {<<"metrics">>,{pkg,<<"metrics">>,<<"1.0.1">>},2},
