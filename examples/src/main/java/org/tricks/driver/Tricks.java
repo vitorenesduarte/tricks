@@ -1,7 +1,8 @@
 package org.tricks.driver;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import org.tricks.driver.json.Discovery;
 import org.tricks.driver.json.Event;
 import org.tricks.driver.json.Notification;
@@ -48,21 +49,26 @@ public class Tricks {
         assert (notification.getValue().equals(value));
     }
 
-    public List<Pod> discover(String tag) throws IOException {
+    public Map<Integer, Pod> discover(String tag) throws IOException {
         Discovery discovery = new Discovery(config.getExpId(), tag);
         return discover(discovery);
     }
 
-    public List<Pod> discover(String tag, Integer min) throws IOException {
+    public Map<Integer, Pod> discover(String tag, Integer min) throws IOException {
         Discovery discovery = new Discovery(config.getExpId(), tag, min);
         return discover(discovery);
     }
 
-    private List<Pod> discover(Discovery discovery) throws IOException {
+    private Map<Integer, Pod> discover(Discovery discovery) throws IOException {
         socket.send(discovery);
 
         Pods pods = socket.receive(Pods.class);
         assert (pods.getTag().equals(discovery.getTag()));
-        return pods.getPods();
+
+        Map<Integer, Pod> map = new HashMap<>();
+        for (Pod pod : pods.getPods()) {
+            map.put(pod.getId(), pod);
+        }
+        return map;
     }
 }

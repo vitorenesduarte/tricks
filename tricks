@@ -168,6 +168,12 @@ case "$1" in
     experiment $2
     ;;
   *)
-    echo "Usage: tricks {start|exp}"
+    echo "usage: tricks <command>"
+    echo ""
+    echo "list of commands:"
+    echo "  start          Starts Tricks in the running Kubernetes cluster."
+    echo "  logs           Tails the logs of Tricks."
+    echo "  exp <file>     Runs the experiment described in the file."
+    echo "  stop           Stops Tricks."
     exit 1
 esac
