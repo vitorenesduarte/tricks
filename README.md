@@ -9,10 +9,16 @@ __Running an experiment should be as easy as describing it in an YAML file.__
 
 ----------
 
+### Tricks presentation
+
+[Here](https://docs.google.com/presentation/d/1uP6eM9eA7_g_B6Ap_1SLPsBOAPypLmLIX-TPf7GbOX4/edit#slide=id.gc6f980f91_0_0)'s a presentation about Tricks.
+
+### About Tricks 
+
 A Tricks entry (TE) is a set of replicas/pods.
 An experiment is one or more TE's.
 
-### Features
+#### Features
 - [x] Register occurrence of events. Each event has a counter associated.
 - [x] Implicit events (`start` and `stop` of each pod in a TE)
 - [x] Subscribe to events
@@ -78,13 +84,13 @@ experiment:
 ```
 
 
-### Other examples
+#### Other examples
 
 - [examples/hello-world.yaml](examples/hello-world.yaml)
 - [examples/implicit-events.yaml](examples/implicit-events.yaml)
 - [examples/explicit-events.yaml](examples/explicit-events.yaml)
 
-# Running Tricks
+### Running Tricks
 
 Assuming there's a Kubernetes cluster running:
 
@@ -98,7 +104,7 @@ And then in another terminal, run one of the examples:
 $ tricks exp examples/explicit-events.yaml
 ```
 
-# Environment variables
+### Environment variables
 
 Configuration of pods is achieved through environment variables.
 Some variable names are reserved and always defined in every pod:
@@ -111,7 +117,7 @@ has the same id)
 - [x] `TRICKS_IP`: pod IP of Tricks
 - [x] `TRICKS_PORT`: port of Tricks
 
-# Drivers API
+### Drivers API
 
 Replicas in experiments can be written in any language,
 as long as there's a driver available.
@@ -189,7 +195,7 @@ it has at least `min` pods
 }
 ```
 
-# Sequences of experiments
+### Sequences of experiments
 
 Typically we want, not to run a single experiment,
 but several, and in the end compare metrics
