@@ -18,7 +18,7 @@
 %%
 %% -------------------------------------------------------------------
 
--module(tricks_scheduler).
+-module(tricks_pod_scheduler).
 -author("Vitor Enes <vitorenesduarte@gmail.com>").
 
 -include("tricks.hrl").
@@ -27,7 +27,7 @@
 
 %% API
 -export([start_link/0,
-         schedule_pod/4]).
+         schedule/4]).
 
 %% gen_server callbacks
 -export([init/1,
@@ -49,11 +49,11 @@ start_link() ->
 
 %% @doc Schedule pod, given its kuberl pod body
 %%      and workflow start and stop information.
--spec schedule_pod(exp_id(), maps:map(), now | event(), never | event()) ->
+-spec schedule(exp_id(), maps:map(), now | event(), never | event()) ->
     ok | error().
-schedule_pod(ExpId, Body, Start, Stop) ->
+schedule(ExpId, Body, Start, Stop) ->
     gen_server:call(?MODULE,
-                    {schedule_pod, ExpId, Body, Start, Stop},
+                    {schedule, ExpId, Body, Start, Stop},
                     infinity).
 
 init([]) ->
@@ -79,7 +79,7 @@ init([]) ->
     {ok, #state{kuberl_cfg=Cfg,
                 schedule=dict:new()}}.
 
-handle_call({schedule_pod, ExpId, Body, Start, Stop}, _From, State0) ->
+handle_call({schedule, ExpId, Body, Start, Stop}, _From, State0) ->
     %% schedule start
     State1 = case Start of
         now ->

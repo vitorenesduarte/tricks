@@ -34,38 +34,39 @@
 -define(CHILD(I, Type, Timeout),
         {I, {I, start_link, []}, permanent, Timeout, Type, [I]}).
 -define(CHILD(I), ?CHILD(I, worker, 5000)).
+-define(CHILDREN(L), [?CHILD(E) || E <- L]).
 
 start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init([]) ->
-    %% configure
+    %% configure tricks
     configure(),
 
     %% start driver tcp acceptor
     start_driver_acceptor(),
 
-    %% start http dispatch
-    start_http_dispatch(),
+    %% start http handler
+    start_http_handler(),
 
-    %% start app, scheduler, event manager,
-    %% discovery manager
+    %% start actors
     Actors = [?APP,
-              tricks_scheduler,
+              tricks_pod_scheduler,
               tricks_event_manager,
               tricks_discovery_manager,
               tricks_watch_stopper],
-    Children = [?CHILD(A) || A <- Actors],
 
     RestartStrategy = {one_for_one, 10, 10},
-    {ok, {RestartStrategy, Children}}.
+    {ok, {RestartStrategy, ?CHILDREN(Actors)}}.
 
 %% @private
 configure() ->
     %% configure driver IP
     configure_from_env(string, "POD_IP", tricks_driver_ip),
 
-    %% select random driver port
+    %% select random driver port:
+    %% - it does not have to be pre-defined since
+    %%   it's tricks that configures the pods
     tricks_config:set(tricks_driver_port, random_port()),
 
     %% configure k8s api server and token
@@ -76,7 +77,7 @@ configure() ->
 start_driver_acceptor() ->
     Listener = tricks_driver_listener,
     Transport = ranch_tcp,
-    %% TODO make this configurable
+    %% TODO make `max_connections' and `num_acceptors' configurable?
     Options = [{port, tricks_config:get(tricks_driver_port)},
                {max_connections, 1024},
                {num_acceptors, 1}],
@@ -89,7 +90,7 @@ start_driver_acceptor() ->
                                    []).
 
 %% @private
-start_http_dispatch() ->
+start_http_handler() ->
     Dispatch = cowboy_router:compile([
         {'_', [
             {"/exp", tricks_http_exp_handler, []}
